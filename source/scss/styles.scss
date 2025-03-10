@@ -1,0 +1,126 @@
+@import 'reset.scss';
+
+body {
+    background-color: #f2f2f2;
+    font-family: 'Open Sans', sans-serif;
+    #main-container {
+        margin: 0 auto;
+        text-align: center;
+        width: 80%;
+        #current-weather {
+            color: rgb(77, 77, 77);
+            font-size: 2.5em;
+            font-weight: 300;
+            margin: 20px;
+        }
+    }
+    #audio-controls {
+        background-color: #4D4D4D;
+        color: #f2f2f2;
+        display: flex;
+        height: auto;
+        padding: 20px 0;
+        position: static;
+        top: 0;
+        width: 100%;
+
+        #player-controls {
+        	display: flex;
+        	padding: 0 20px;
+        	width: 100%;
+        }
+
+        #master-volume-container {
+        	margin-left: auto;
+        }
+
+        #mute-container {
+        	-webkit-align-self: flex-start;
+   			align-self: flex-start;
+        }
+    }
+    .swing-slow {
+        transform-origin: top center;
+        animation: swing-slow 2s ease infinite;
+    }
+    .swing-med {
+        transform-origin: top center;
+        animation: swing-med 2s ease infinite;
+    }
+    .swing-fast {
+        transform-origin: top center;
+        animation: swing-fast 2s ease infinite;
+    }
+}
+
+@keyframes swing-slow {
+    0% {
+        transform: rotate(0deg);
+    }
+    25% {
+        transform: rotate(-0.05deg);
+    }
+    50% {
+        transform: rotate(0.1deg);
+    }
+    75% {
+        transform: rotate(-0.5deg);
+    }
+    85% {
+        transform: rotate(0.3deg);
+    }
+    95% {
+        transform: rotate(-0.1deg);
+    }
+    100% {
+        transform: rotate(0deg);
+    }
+}
+
+@keyframes swing-med {
+    0% {
+        transform: rotate(0deg);
+    }
+    25% {
+        transform: rotate(-0.5deg);
+    }
+    50% {
+        transform: rotate(0.4deg);
+    }
+    75% {
+        transform: rotate(-1deg);
+    }
+    85% {
+        transform: rotate(1.3deg);
+    }
+    95% {
+        transform: rotate(-0.1deg);
+    }
+    100% {
+        transform: rotate(0deg);
+    }
+}
+
+@keyframes swing-fast {
+    0% {
+        transform: rotate(0deg);
+    }
+    25% {
+        transform: rotate(-1.5deg);
+    }
+    50% {
+        transform: rotate(1.4deg);
+    }
+    75% {
+        transform: rotate(-2deg);
+    }
+    85% {
+        transform: rotate(2.3deg);
+    }
+    95% {
+        transform: rotate(-0.5deg);
+    }
+    100% {
+        transform: rotate(0deg);
+    }
+}

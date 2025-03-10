@@ -1,0 +1,72 @@
+<html>
+
+<head>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i" rel="stylesheet">
+    <link href="assets/stylesheets/styles.css" rel="stylesheet" />
+    <title>Wind Chimes</title>
+</head>
+
+<body>
+    <div id="audio-controls">
+        <form id="player-controls">
+            <div id="mute-container">
+                <label for="drone-mute">Mute Drone:</label>
+                <input id="drone-mute" type="checkbox" name="drone-mute">
+                <label for="master-mute">Mute All:</label>
+                <input id="master-mute" type="checkbox" name="mute">
+            </div>
+            <div id="master-volume-container">
+                <label for="master-volume">Master Volume:</label>
+                <input id="master-volume" type="range" name="volume" step="1" min="-30" max="6" value="0">
+            </div>
+            <div id="master-mute-container">
+                
+            </div>
+        </form>
+    </div>
+    <div id="main-container">
+        <div id="data-container">
+            <div id="current-weather"></div>
+        </div>
+        <div id="chime-container">
+            <svg width="536" height="522" viewBox="-18 5 536 522" xmlns="http://www.w3.org/2000/svg">
+                <path d="M449.231841 146.339113H-17.21308367V78.1737744c0-15.1438195 12.26393627-27.406 27.39472507-27.406h30.3832988c8.8706933 0 17.4733865-2.126797 25.1599682-6.0568872 7.6865816-3.9172782 14.444239-9.6378496 19.6408766-16.8264661C95.756924 13.50718797 112.42204 5 130.164494 5h239.671012c17.728574 0 34.394757 8.50718797 44.786964 22.8833534 10.406088 14.3761654 27.058391 22.8833534 44.800845 22.8833534h30.383299c15.130788 0 27.407537 12.2632481 27.407537 27.406v68.1664062h-67.98231z" fill="#3A88D6" fill-rule="nonzero" />
+                <g fill="none" fill-rule="nonzero" id="chime-5" class="chime-bell">
+                    <path d="M479.59 220.698c-3.482 0-6.304-2.823-6.304-6.304v-110.09c0-3.481 2.822-6.304 6.304-6.304s6.304 2.823 6.304 6.304v110.091c0 3.48-2.822 6.303-6.304 6.303z" fill="#4D4D4D" />
+                    <path fill="#F7B239" d="M502.935 196v330.449h-46.649V196h23.324" />
+                    <path fill="#4D4D4D" opacity=".24999999" d="M483.286 196h20.172v330.449h-20.172z" />
+                </g>
+                <g fill="none" fill-rule="nonzero" id="chime-5" class="chime-bell">
+                    <path d="M388.293 221.17c-3.482 0-6.304-2.823-6.304-6.304v-110.09c0-3.481 2.822-6.304 6.304-6.304s6.304 2.823 6.304 6.304v110.091c0 3.48-2.821 6.303-6.304 6.303z" fill="#4D4D4D" />
+                    <path fill="#F7B239" d="M411.622 195.551v296.37h-46.649v-296.37h23.324" />
+                    <path fill="#4D4D4D" opacity=".25" d="M391.449 195.551h20.172v296.37h-20.172z" />
+                </g>
+                <g fill="none" fill-rule="nonzero" id="chime-4" class="chime-bell">
+                    <path d="M295.996 221.17c-3.482 0-6.304-2.823-6.304-6.304v-110.09c0-3.481 2.822-6.304 6.304-6.304s6.304 2.823 6.304 6.304v110.091c0 3.48-2.822 6.303-6.304 6.303z" fill="#4D4D4D" />
+                    <path fill="#F7B239" d="M319.324 195.551v254.298h-46.648V195.551H296" />
+                    <path fill="#4D4D4D" opacity=".25" d="M299.152 195.551h20.172v254.298h-20.172z" />
+                </g>
+                <g fill="none" fill-rule="nonzero" id="chime-3" class="chime-bell">
+                    <path d="M203.699 221.17c-3.482 0-6.304-2.823-6.304-6.304v-110.09c0-3.481 2.822-6.304 6.304-6.304s6.304 2.823 6.304 6.304v110.091c0 3.48-2.822 6.303-6.304 6.303z" fill="#4D4D4D" />
+                    <path fill="#F7B239" d="M227.027 195.551v218.096403h-46.649V195.551h23.325" />
+                    <path fill="#4D4D4D" opacity=".25" d="M206.855 195.551h20.172v218.096403h-20.172z" />
+                </g>
+                <g fill="none" fill-rule="nonzero" id="chime-2" class="chime-bell">
+                    <path d="M112.402 221.17c-3.482 0-6.304-2.823-6.304-6.304v-110.09c0-3.481 2.822-6.304 6.304-6.304s6.304 2.823 6.304 6.304v110.091c0 3.48-2.822 6.303-6.304 6.303z" fill="#4D4D4D" />
+                    <path fill="#F7B239" d="M135.73 195.551v181.979709H89.081V195.551h23.325" />
+                    <path fill="#4D4D4D" opacity=".25" d="M115.558 195.551h20.172v181.979709h-20.172z" />
+                </g>
+                <g fill="none" fill-rule="nonzero" id="chime-1" class="chime-bell">
+                    <path d="M21.402 221.17c-3.482 0-6.304-2.823-6.304-6.304v-110.09c0-3.481 2.822-6.304 6.304-6.304s6.304 2.823 6.304 6.304v110.091c0 3.48-2.822 6.303-6.304 6.303z" fill="#4D4D4D" />
+                    <path fill="#F7B239" d="M44.73 195.551v155.075H-1.919V195.551h23.325" />
+                    <path fill="#4D4D4D" opacity=".25" d="M24.558 195.551H44.73v155.075H24.558z" />
+                </g>
+            </svg>
+        </div>
+    </div>
+</body>
+<!-- <script src="assets/javascript/jquery-3.2.0.min.js" type="text/javascript"></script> -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/0.10.0/Tone.min.js"></script>
+<script src="assets/javascript/scripts.min.js" type="text/javascript"></script>
+
+</html>

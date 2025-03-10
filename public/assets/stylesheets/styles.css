@@ -1,0 +1,134 @@
+/* http://meyerweb.com/eric/tools/css/reset/ 
+   v2.0 | 20110126
+   License: none (public domain)
+*/
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline; }
+
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure,
+footer, header, hgroup, menu, nav, section {
+  display: block; }
+
+body {
+  line-height: 1; }
+
+ol, ul {
+  list-style: none; }
+
+blockquote, q {
+  quotes: none; }
+
+blockquote:before, blockquote:after,
+q:before, q:after {
+  content: '';
+  content: none; }
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0; }
+
+body {
+  background-color: #f2f2f2;
+  font-family: 'Open Sans', sans-serif; }
+  body #main-container {
+    margin: 0 auto;
+    text-align: center;
+    width: 80%; }
+    body #main-container #current-weather {
+      color: #4d4d4d;
+      font-size: 2.5em;
+      font-weight: 300;
+      margin: 20px; }
+  body #audio-controls {
+    background-color: #4D4D4D;
+    color: #f2f2f2;
+    display: flex;
+    height: auto;
+    padding: 20px 0;
+    position: static;
+    top: 0;
+    width: 100%; }
+    body #audio-controls #player-controls {
+      display: flex;
+      padding: 0 20px;
+      width: 100%; }
+    body #audio-controls #master-volume-container {
+      margin-left: auto; }
+    body #audio-controls #mute-container {
+      -webkit-align-self: flex-start;
+      align-self: flex-start; }
+  body .swing-slow {
+    transform-origin: top center;
+    animation: swing-slow 2s ease infinite; }
+  body .swing-med {
+    transform-origin: top center;
+    animation: swing-med 2s ease infinite; }
+  body .swing-fast {
+    transform-origin: top center;
+    animation: swing-fast 2s ease infinite; }
+
+@keyframes swing-slow {
+  0% {
+    transform: rotate(0deg); }
+  25% {
+    transform: rotate(-0.05deg); }
+  50% {
+    transform: rotate(0.1deg); }
+  75% {
+    transform: rotate(-0.5deg); }
+  85% {
+    transform: rotate(0.3deg); }
+  95% {
+    transform: rotate(-0.1deg); }
+  100% {
+    transform: rotate(0deg); } }
+
+@keyframes swing-med {
+  0% {
+    transform: rotate(0deg); }
+  25% {
+    transform: rotate(-0.5deg); }
+  50% {
+    transform: rotate(0.4deg); }
+  75% {
+    transform: rotate(-1deg); }
+  85% {
+    transform: rotate(1.3deg); }
+  95% {
+    transform: rotate(-0.1deg); }
+  100% {
+    transform: rotate(0deg); } }
+
+@keyframes swing-fast {
+  0% {
+    transform: rotate(0deg); }
+  25% {
+    transform: rotate(-1.5deg); }
+  50% {
+    transform: rotate(1.4deg); }
+  75% {
+    transform: rotate(-2deg); }
+  85% {
+    transform: rotate(2.3deg); }
+  95% {
+    transform: rotate(-0.5deg); }
+  100% {
+    transform: rotate(0deg); } }

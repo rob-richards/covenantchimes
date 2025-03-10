@@ -1,0 +1,6 @@
+---
+applications:
+ - name: WindChime
+   random-route: true
+   memory: 256M
+   NPM_CONFIG_PRODUCTION: true
