@@ -34,30 +34,30 @@ const defaultPack: AudioPack = {
 			clear: 'very-low-wind.wav',
 			rain: 'heavy-rain.mp3',
 			snow: 'light-snow.mp3',
-			cloudy: 'medium-wind.mp3',
+			cloudy: 'med-wind.wav',
 			default: 'very-low-wind.wav',
 		},
 	},
 };
 
 // Default user settings
-const defaultSettings: UserSettings = {
+const defaultUserSettings: UserSettings = {
 	volume: {
-		master: 0,
-		chimes: 0,
-		drone: 0,
-		ambience: 0,
+		master: 0, // 0 dB (normal volume)
+		drone: -25, // -10 dB (lower than normal to reduce drone volume)
+		ambience: 15, // +3 dB (slightly higher than normal to boost ambience)
+		chimes: 0, // 0 dB (normal volume)
 	},
 	mute: {
 		master: false,
-		chimes: false,
 		drone: false,
 		ambience: false,
+		chimes: false,
 	},
 	selectedPack: 'default',
 	binaural: {
 		enabled: false,
-		frequency: 432,
+		frequency: 432, // Default to 432 Hz
 	},
 };
 
@@ -65,7 +65,7 @@ export const useAppStore = create<AppState>((set) => ({
 	weather: null,
 	isLoading: false,
 	error: null,
-	userSettings: defaultSettings,
+	userSettings: defaultUserSettings,
 	audioPacks: [defaultPack],
 	selectedPack: 'default',
 

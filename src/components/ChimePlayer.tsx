@@ -517,7 +517,8 @@ export default function ChimePlayer() {
 
 				{showControls && (
 					<div className="p-4 bg-gray-50 rounded-lg">
-						<div className="flex items-center mb-4">
+						{/* Master Volume Control */}
+						<div className="flex items-center mb-6">
 							<button
 								className="p-2 text-gray-700 hover:text-primary-600 focus:outline-none"
 								onClick={toggleMute}
@@ -548,6 +549,155 @@ export default function ChimePlayer() {
 							</div>
 						</div>
 
+						{/* Individual Sound Controls */}
+						<div className="mb-6">
+							<h3 className="text-sm font-medium text-gray-700 mb-3">
+								Sound Controls
+							</h3>
+
+							{/* Chimes Volume */}
+							<div className="flex items-center mb-3">
+								<button
+									className="p-2 text-gray-700 hover:text-primary-600 focus:outline-none"
+									onClick={() =>
+										updateUserSettings({
+											mute: {
+												...userSettings.mute,
+												chimes: !userSettings.mute.chimes,
+											},
+										})
+									}
+								>
+									{userSettings.mute.chimes ? (
+										<FaVolumeMute className="h-5 w-5" />
+									) : (
+										<FaVolumeUp className="h-5 w-5" />
+									)}
+								</button>
+								<div className="ml-2 flex-1">
+									<label
+										htmlFor="chimes-volume"
+										className="block text-xs font-medium text-gray-700 mb-1"
+									>
+										Chimes
+									</label>
+									<input
+										id="chimes-volume"
+										type="range"
+										min="-30"
+										max="6"
+										step="1"
+										value={userSettings.volume.chimes}
+										onChange={(e) => {
+											const value = parseInt(e.target.value, 10);
+											updateUserSettings({
+												volume: {
+													...userSettings.volume,
+													chimes: value,
+												},
+											});
+										}}
+										className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+									/>
+								</div>
+							</div>
+
+							{/* Drone Volume */}
+							<div className="flex items-center mb-3">
+								<button
+									className="p-2 text-gray-700 hover:text-primary-600 focus:outline-none"
+									onClick={() =>
+										updateUserSettings({
+											mute: {
+												...userSettings.mute,
+												drone: !userSettings.mute.drone,
+											},
+										})
+									}
+								>
+									{userSettings.mute.drone ? (
+										<FaVolumeMute className="h-5 w-5" />
+									) : (
+										<FaVolumeUp className="h-5 w-5" />
+									)}
+								</button>
+								<div className="ml-2 flex-1">
+									<label
+										htmlFor="drone-volume"
+										className="block text-xs font-medium text-gray-700 mb-1"
+									>
+										Drone
+									</label>
+									<input
+										id="drone-volume"
+										type="range"
+										min="-30"
+										max="6"
+										step="1"
+										value={userSettings.volume.drone}
+										onChange={(e) => {
+											const value = parseInt(e.target.value, 10);
+											updateUserSettings({
+												volume: {
+													...userSettings.volume,
+													drone: value,
+												},
+											});
+										}}
+										className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+									/>
+								</div>
+							</div>
+
+							{/* Ambience Volume */}
+							<div className="flex items-center">
+								<button
+									className="p-2 text-gray-700 hover:text-primary-600 focus:outline-none"
+									onClick={() =>
+										updateUserSettings({
+											mute: {
+												...userSettings.mute,
+												ambience: !userSettings.mute.ambience,
+											},
+										})
+									}
+								>
+									{userSettings.mute.ambience ? (
+										<FaVolumeMute className="h-5 w-5" />
+									) : (
+										<FaVolumeUp className="h-5 w-5" />
+									)}
+								</button>
+								<div className="ml-2 flex-1">
+									<label
+										htmlFor="ambience-volume"
+										className="block text-xs font-medium text-gray-700 mb-1"
+									>
+										Ambience
+									</label>
+									<input
+										id="ambience-volume"
+										type="range"
+										min="-30"
+										max="6"
+										step="1"
+										value={userSettings.volume.ambience}
+										onChange={(e) => {
+											const value = parseInt(e.target.value, 10);
+											updateUserSettings({
+												volume: {
+													...userSettings.volume,
+													ambience: value,
+												},
+											});
+										}}
+										className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+									/>
+								</div>
+							</div>
+						</div>
+
+						{/* Binaural Controls */}
 						<div className="mb-4">
 							<div className="flex items-center">
 								<input

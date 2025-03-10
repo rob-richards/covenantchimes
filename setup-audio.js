@@ -33,7 +33,7 @@ const audioFiles = [
 			'https://assets.mixkit.co/sfx/preview/mixkit-blizzard-cold-winds-1153.mp3',
 	},
 	{
-		name: 'medium-wind.wav',
+		name: 'med-wind.wav',
 		url: 'https://cdn.freesound.org/previews/523/523296_7552499-lq.mp3', // Medium wind
 		fallbackUrl:
 			'https://assets.mixkit.co/sfx/preview/mixkit-forest-wind-ambient-2431.mp3',

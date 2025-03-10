@@ -69,7 +69,7 @@ const AUDIO_FILES = {
 				'https://assets.mixkit.co/sfx/preview/mixkit-blizzard-cold-winds-1153.mp3',
 		},
 		cloudy: {
-			primary: '/assets/audio/medium-wind.mp3',
+			primary: '/assets/audio/med-wind.wav',
 			fallback:
 				'https://assets.mixkit.co/sfx/preview/mixkit-forest-wind-ambient-2431.mp3',
 		},
@@ -275,7 +275,7 @@ export function useSimpleAudio() {
 					AUDIO_FILES.drone.fallback
 				);
 				drone.loop = true;
-				drone.volume = 0.5;
+				drone.volume = 0.3;
 				await drone
 					.play()
 					.catch((e) => console.warn('Error playing drone:', e));
@@ -289,7 +289,7 @@ export function useSimpleAudio() {
 					ambienceSources.fallback
 				);
 				ambience.loop = true;
-				ambience.volume = 0.3;
+				ambience.volume = 0.6;
 				await ambience
 					.play()
 					.catch((e) => console.warn('Error playing ambience:', e));
@@ -304,72 +304,72 @@ export function useSimpleAudio() {
 					AUDIO_FILES.chimes.c3.a,
 					AUDIO_FILES.chimes.c3.fallback
 				);
-				chimeAudios.current.c3.a.volume = 0.7;
+				chimeAudios.current.c3.a.volume = 1;
 
 				chimeAudios.current.c3.b = await loadAudioWithFallback(
 					AUDIO_FILES.chimes.c3.b,
 					AUDIO_FILES.chimes.c3.fallback
 				);
-				chimeAudios.current.c3.b.volume = 0.7;
+				chimeAudios.current.c3.b.volume = 1;
 
 				// Load C4 chimes
 				chimeAudios.current.c4.a = await loadAudioWithFallback(
 					AUDIO_FILES.chimes.c4.a,
 					AUDIO_FILES.chimes.c4.fallback
 				);
-				chimeAudios.current.c4.a.volume = 0.7;
+				chimeAudios.current.c4.a.volume = 1;
 
 				chimeAudios.current.c4.b = await loadAudioWithFallback(
 					AUDIO_FILES.chimes.c4.b,
 					AUDIO_FILES.chimes.c4.fallback
 				);
-				chimeAudios.current.c4.b.volume = 0.7;
+				chimeAudios.current.c4.b.volume = 1;
 
 				// Load D3 chimes
 				chimeAudios.current.d3.a = await loadAudioWithFallback(
 					AUDIO_FILES.chimes.d3.a,
 					AUDIO_FILES.chimes.d3.fallback
 				);
-				chimeAudios.current.d3.a.volume = 0.7;
+				chimeAudios.current.d3.a.volume = 1;
 
 				chimeAudios.current.d3.b = await loadAudioWithFallback(
 					AUDIO_FILES.chimes.d3.b,
 					AUDIO_FILES.chimes.d3.fallback
 				);
-				chimeAudios.current.d3.b.volume = 0.7;
+				chimeAudios.current.d3.b.volume = 1;
 
 				// Load Eb3 chimes
 				chimeAudios.current.eb3.a = await loadAudioWithFallback(
 					AUDIO_FILES.chimes.eb3.a,
 					AUDIO_FILES.chimes.eb3.fallback
 				);
-				chimeAudios.current.eb3.a.volume = 0.7;
+				chimeAudios.current.eb3.a.volume = 1;
 
 				chimeAudios.current.eb3.b = await loadAudioWithFallback(
 					AUDIO_FILES.chimes.eb3.b,
 					AUDIO_FILES.chimes.eb3.fallback
 				);
-				chimeAudios.current.eb3.b.volume = 0.7;
+				chimeAudios.current.eb3.b.volume = 1;
 
 				// Load F3 chimes
 				chimeAudios.current.f3.a = await loadAudioWithFallback(
 					AUDIO_FILES.chimes.f3.a,
 					AUDIO_FILES.chimes.f3.fallback
 				);
-				chimeAudios.current.f3.a.volume = 0.7;
+				chimeAudios.current.f3.a.volume = 1;
 
 				chimeAudios.current.f3.b = await loadAudioWithFallback(
 					AUDIO_FILES.chimes.f3.b,
 					AUDIO_FILES.chimes.f3.fallback
 				);
-				chimeAudios.current.f3.b.volume = 0.7;
+				chimeAudios.current.f3.b.volume = 1;
 
 				// Load G3 chime
 				chimeAudios.current.g3 = await loadAudioWithFallback(
 					AUDIO_FILES.chimes.g3.single,
 					AUDIO_FILES.chimes.g3.fallback
 				);
-				chimeAudios.current.g3.volume = 0.7;
+				chimeAudios.current.g3.volume = 1;
 
 				console.log('All chime sounds loaded successfully');
 			} catch (audioError) {
@@ -478,7 +478,15 @@ export function useSimpleAudio() {
 						if (chimeSound) {
 							// Clone the audio element to allow overlapping sounds
 							const soundClone = chimeSound.cloneNode() as HTMLAudioElement;
-							soundClone.volume = Math.random() * 0.3 + 0.4; // Random volume between 0.4 and 0.7
+
+							// Apply volume settings - base volume (0.4-0.7) adjusted by user settings
+							const baseVolume = Math.random() * 0.3 + 0.4; // Random volume between 0.4 and 0.7
+							const userVolume =
+								userSettings.mute.master || userSettings.mute.chimes
+									? 0
+									: (userSettings.volume.chimes + 30) / 36;
+
+							soundClone.volume = baseVolume * userVolume;
 							soundClone
 								.play()
 								.catch((err) =>
@@ -570,17 +578,22 @@ export function useSimpleAudio() {
 
 		// Update drone volume and mute
 		if (droneAudio.current) {
-			droneAudio.current.volume = userSettings.mute.drone
-				? 0
-				: ((userSettings.volume.drone + 30) / 36) * 0.7;
+			droneAudio.current.volume =
+				userSettings.mute.master || userSettings.mute.drone
+					? 0
+					: ((userSettings.volume.drone + 30) / 36) * 0.3; // Reduced from 0.7 to 0.3
 		}
 
 		// Update ambience volume and mute
 		if (ambienceAudio.current) {
-			ambienceAudio.current.volume = userSettings.mute.ambience
-				? 0
-				: ((userSettings.volume.ambience + 30) / 36) * 0.5;
+			ambienceAudio.current.volume =
+				userSettings.mute.master || userSettings.mute.ambience
+					? 0
+					: ((userSettings.volume.ambience + 30) / 36) * 0.6; // Increased from 0.5 to 0.6
 		}
+
+		// Update chimes volume (will affect future chime sounds)
+		// The volume for each chime is applied when the sound is played in startChimes
 
 		// Update binaural beat
 		if (userSettings.binaural.enabled) {
