@@ -10,10 +10,42 @@ const DEFAULT_CONDITION = 'Partly cloudy';
 
 // Audio file paths with fallbacks
 const AUDIO_FILES = {
-	chime: {
-		primary: '/assets/audio/chime-f3-a.wav',
-		fallback:
-			'https://assets.mixkit.co/sfx/preview/mixkit-small-church-bell-588.mp3',
+	chimes: {
+		c3: {
+			a: '/assets/audio/chime-c3-a.wav',
+			b: '/assets/audio/chime-c3-b.wav',
+			fallback:
+				'https://assets.mixkit.co/sfx/preview/mixkit-small-church-bell-588.mp3',
+		},
+		c4: {
+			a: '/assets/audio/chime-c4-a.wav',
+			b: '/assets/audio/chime-c4-b.wav',
+			fallback:
+				'https://assets.mixkit.co/sfx/preview/mixkit-cathedral-church-bell-599.mp3',
+		},
+		d3: {
+			a: '/assets/audio/chime-d3-a.wav',
+			b: '/assets/audio/chime-d3-b.wav',
+			fallback:
+				'https://assets.mixkit.co/sfx/preview/mixkit-church-bell-triple-hit-583.mp3',
+		},
+		eb3: {
+			a: '/assets/audio/chime-eb3-a.wav',
+			b: '/assets/audio/chime-eb3-b.wav',
+			fallback:
+				'https://assets.mixkit.co/sfx/preview/mixkit-short-church-bell-588.mp3',
+		},
+		f3: {
+			a: '/assets/audio/chime-f3-a.wav',
+			b: '/assets/audio/chime-f3-b.wav',
+			fallback:
+				'https://assets.mixkit.co/sfx/preview/mixkit-small-church-bell-588.mp3',
+		},
+		g3: {
+			single: '/assets/audio/chime-g3.wav',
+			fallback:
+				'https://assets.mixkit.co/sfx/preview/mixkit-church-bell-hit-592.mp3',
+		},
 	},
 	drone: {
 		primary: '/assets/audio/drone-cello-f.mp3',
@@ -52,10 +84,26 @@ export function useSimpleAudio() {
 	// Audio elements
 	const audioContext = useRef<AudioContext | null>(null);
 	const gainNode = useRef<GainNode | null>(null);
-	const chimeAudio = useRef<HTMLAudioElement | null>(null);
 	const droneAudio = useRef<HTMLAudioElement | null>(null);
 	const ambienceAudio = useRef<HTMLAudioElement | null>(null);
 	const oscillator = useRef<OscillatorNode | null>(null);
+
+	// Chime audio elements
+	const chimeAudios = useRef<{
+		c3: { a: HTMLAudioElement | null; b: HTMLAudioElement | null };
+		c4: { a: HTMLAudioElement | null; b: HTMLAudioElement | null };
+		d3: { a: HTMLAudioElement | null; b: HTMLAudioElement | null };
+		eb3: { a: HTMLAudioElement | null; b: HTMLAudioElement | null };
+		f3: { a: HTMLAudioElement | null; b: HTMLAudioElement | null };
+		g3: HTMLAudioElement | null;
+	}>({
+		c3: { a: null, b: null },
+		c4: { a: null, b: null },
+		d3: { a: null, b: null },
+		eb3: { a: null, b: null },
+		f3: { a: null, b: null },
+		g3: null,
+	});
 
 	// Initialize audio
 	const initializeAudio = async () => {
@@ -182,11 +230,6 @@ export function useSimpleAudio() {
 			}
 
 			// Clean up existing audio
-			if (chimeAudio.current) {
-				chimeAudio.current.pause();
-				chimeAudio.current.src = '';
-			}
-
 			if (droneAudio.current) {
 				droneAudio.current.pause();
 				droneAudio.current.src = '';
@@ -196,6 +239,26 @@ export function useSimpleAudio() {
 				ambienceAudio.current.pause();
 				ambienceAudio.current.src = '';
 			}
+
+			// Clean up all chime audio elements
+			Object.keys(chimeAudios.current).forEach((key) => {
+				const chime =
+					chimeAudios.current[key as keyof typeof chimeAudios.current];
+				if (chime) {
+					if ('a' in chime && chime.a) {
+						chime.a.pause();
+						chime.a.src = '';
+					}
+					if ('b' in chime && chime.b) {
+						chime.b.pause();
+						chime.b.src = '';
+					}
+					if (!('a' in chime) && chime) {
+						(chime as HTMLAudioElement).pause();
+						(chime as HTMLAudioElement).src = '';
+					}
+				}
+			});
 
 			if (oscillator.current) {
 				oscillator.current.stop();
@@ -233,15 +296,82 @@ export function useSimpleAudio() {
 				ambienceAudio.current = ambience;
 				console.log('Ambience playing');
 
-				// Load chime (will be played based on wind speed)
-				console.log('Loading chime audio...');
-				const chime = await loadAudioWithFallback(
-					AUDIO_FILES.chime.primary,
-					AUDIO_FILES.chime.fallback
+				// Load all chime sounds
+				console.log('Loading chime audio files...');
+
+				// Load C3 chimes
+				chimeAudios.current.c3.a = await loadAudioWithFallback(
+					AUDIO_FILES.chimes.c3.a,
+					AUDIO_FILES.chimes.c3.fallback
 				);
-				chime.volume = 0.7;
-				chimeAudio.current = chime;
-				console.log('Chime loaded');
+				chimeAudios.current.c3.a.volume = 0.7;
+
+				chimeAudios.current.c3.b = await loadAudioWithFallback(
+					AUDIO_FILES.chimes.c3.b,
+					AUDIO_FILES.chimes.c3.fallback
+				);
+				chimeAudios.current.c3.b.volume = 0.7;
+
+				// Load C4 chimes
+				chimeAudios.current.c4.a = await loadAudioWithFallback(
+					AUDIO_FILES.chimes.c4.a,
+					AUDIO_FILES.chimes.c4.fallback
+				);
+				chimeAudios.current.c4.a.volume = 0.7;
+
+				chimeAudios.current.c4.b = await loadAudioWithFallback(
+					AUDIO_FILES.chimes.c4.b,
+					AUDIO_FILES.chimes.c4.fallback
+				);
+				chimeAudios.current.c4.b.volume = 0.7;
+
+				// Load D3 chimes
+				chimeAudios.current.d3.a = await loadAudioWithFallback(
+					AUDIO_FILES.chimes.d3.a,
+					AUDIO_FILES.chimes.d3.fallback
+				);
+				chimeAudios.current.d3.a.volume = 0.7;
+
+				chimeAudios.current.d3.b = await loadAudioWithFallback(
+					AUDIO_FILES.chimes.d3.b,
+					AUDIO_FILES.chimes.d3.fallback
+				);
+				chimeAudios.current.d3.b.volume = 0.7;
+
+				// Load Eb3 chimes
+				chimeAudios.current.eb3.a = await loadAudioWithFallback(
+					AUDIO_FILES.chimes.eb3.a,
+					AUDIO_FILES.chimes.eb3.fallback
+				);
+				chimeAudios.current.eb3.a.volume = 0.7;
+
+				chimeAudios.current.eb3.b = await loadAudioWithFallback(
+					AUDIO_FILES.chimes.eb3.b,
+					AUDIO_FILES.chimes.eb3.fallback
+				);
+				chimeAudios.current.eb3.b.volume = 0.7;
+
+				// Load F3 chimes
+				chimeAudios.current.f3.a = await loadAudioWithFallback(
+					AUDIO_FILES.chimes.f3.a,
+					AUDIO_FILES.chimes.f3.fallback
+				);
+				chimeAudios.current.f3.a.volume = 0.7;
+
+				chimeAudios.current.f3.b = await loadAudioWithFallback(
+					AUDIO_FILES.chimes.f3.b,
+					AUDIO_FILES.chimes.f3.fallback
+				);
+				chimeAudios.current.f3.b.volume = 0.7;
+
+				// Load G3 chime
+				chimeAudios.current.g3 = await loadAudioWithFallback(
+					AUDIO_FILES.chimes.g3.single,
+					AUDIO_FILES.chimes.g3.fallback
+				);
+				chimeAudios.current.g3.volume = 0.7;
+
+				console.log('All chime sounds loaded successfully');
 			} catch (audioError) {
 				console.error('Error loading audio:', audioError);
 				// Continue even if some audio files fail to load
@@ -269,7 +399,7 @@ export function useSimpleAudio() {
 			}
 
 			// Start playing chimes based on wind speed
-			const windSpeed = weather?.current?.wind_kph || DEFAULT_WIND_SPEED;
+			const windSpeed = weather?.current?.wind_mph || DEFAULT_WIND_SPEED;
 			startChimes(windSpeed);
 
 			setIsPlaying(true);
@@ -284,8 +414,16 @@ export function useSimpleAudio() {
 	const chimeIntervals = useRef<number[]>([]);
 
 	const startChimes = (windSpeed: number) => {
-		if (!chimeAudio.current) {
-			console.warn('Cannot start chimes: chime audio not loaded');
+		// Check if chime audio is loaded
+		if (
+			!chimeAudios.current.c3.a ||
+			!chimeAudios.current.c4.a ||
+			!chimeAudios.current.d3.a ||
+			!chimeAudios.current.eb3.a ||
+			!chimeAudios.current.f3.a ||
+			!chimeAudios.current.g3
+		) {
+			console.warn('Cannot start chimes: not all chime audio files are loaded');
 			return;
 		}
 
@@ -295,40 +433,66 @@ export function useSimpleAudio() {
 		// Wind speed faster than 74mph is a hurricane
 		const swingProbability = Math.ceil((100 * windSpeed) / 74) / 100;
 
-		// Create intervals for chime sounds based on wind speed
-		for (let i = 0; i < 3; i++) {
-			const randomNum = Math.random() * swingProbability;
-			let interval = 5000; // default interval
+		// Create intervals for each chime with different timing
+		const chimeTypes = [
+			{ name: 'c3', delay: 0, alternating: true },
+			{ name: 'c4', delay: 100, alternating: true },
+			{ name: 'd3', delay: 200, alternating: true },
+			{ name: 'eb3', delay: 300, alternating: true },
+			{ name: 'f3', delay: 400, alternating: true },
+			{ name: 'g3', delay: 500, alternating: false },
+		];
 
-			if (randomNum >= 0.01 && randomNum <= 0.14) {
-				// Slow wind
-				interval = Math.max(randomNum * 50, 2) * 1000;
-			} else if (randomNum <= 0.3 && randomNum >= 0.15) {
-				// Medium wind
-				interval = Math.max(randomNum * 40, 1.8) * 1000;
-			} else if (randomNum >= 0.31) {
-				// Fast wind
-				interval = Math.max(randomNum * 30, 1.6) * 500;
-			}
+		chimeTypes.forEach((chime, index) => {
+			// Calculate interval based on wind speed and add some randomness
+			const baseInterval = 5000 - windSpeed * 50;
+			const randomFactor = Math.random() * 0.5 + 0.75; // 0.75 to 1.25
+			const interval =
+				Math.max(baseInterval * randomFactor, 1000) + chime.delay;
+
+			let useA = true; // For alternating between A and B sounds
 
 			const intervalId = window.setInterval(() => {
-				if (chimeAudio.current) {
-					try {
-						// Clone the audio element to allow overlapping sounds
-						const chimeSound =
-							chimeAudio.current.cloneNode() as HTMLAudioElement;
-						chimeSound.volume = Math.random() * 0.3 + 0.4; // Random volume between 0.4 and 0.7
-						chimeSound
-							.play()
-							.catch((err) => console.warn('Error playing chime:', err));
-					} catch (e) {
-						console.warn('Error playing chime sound:', e);
+				try {
+					// Determine if this chime should play based on wind probability
+					if (Math.random() < swingProbability) {
+						let chimeSound: HTMLAudioElement | null = null;
+
+						// Get the appropriate chime sound
+						if (chime.alternating) {
+							const chimePair =
+								chimeAudios.current[
+									chime.name as keyof typeof chimeAudios.current
+								];
+							if (chimePair && 'a' in chimePair && 'b' in chimePair) {
+								chimeSound = useA ? chimePair.a : chimePair.b;
+								useA = !useA; // Toggle for next time
+							}
+						} else {
+							// For G3 which doesn't alternate
+							chimeSound = chimeAudios.current[
+								chime.name as keyof typeof chimeAudios.current
+							] as HTMLAudioElement;
+						}
+
+						if (chimeSound) {
+							// Clone the audio element to allow overlapping sounds
+							const soundClone = chimeSound.cloneNode() as HTMLAudioElement;
+							soundClone.volume = Math.random() * 0.3 + 0.4; // Random volume between 0.4 and 0.7
+							soundClone
+								.play()
+								.catch((err) =>
+									console.warn(`Error playing ${chime.name} chime:`, err)
+								);
+						}
 					}
+				} catch (e) {
+					console.warn(`Error playing ${chime.name} chime sound:`, e);
 				}
 			}, interval);
 
 			chimeIntervals.current.push(intervalId);
-		}
+		});
 
 		console.log(`Started ${chimeIntervals.current.length} chime intervals`);
 	};
@@ -344,10 +508,6 @@ export function useSimpleAudio() {
 		console.log('Stopping audio...');
 		clearChimeIntervals();
 
-		if (chimeAudio.current) {
-			chimeAudio.current.pause();
-		}
-
 		if (droneAudio.current) {
 			droneAudio.current.pause();
 		}
@@ -355,6 +515,26 @@ export function useSimpleAudio() {
 		if (ambienceAudio.current) {
 			ambienceAudio.current.pause();
 		}
+
+		// Clean up all chime audio elements
+		Object.keys(chimeAudios.current).forEach((key) => {
+			const chime =
+				chimeAudios.current[key as keyof typeof chimeAudios.current];
+			if (chime) {
+				if ('a' in chime && chime.a) {
+					chime.a.pause();
+					chime.a.src = '';
+				}
+				if ('b' in chime && chime.b) {
+					chime.b.pause();
+					chime.b.src = '';
+				}
+				if (!('a' in chime) && chime) {
+					(chime as HTMLAudioElement).pause();
+					(chime as HTMLAudioElement).src = '';
+				}
+			}
+		});
 
 		if (oscillator.current) {
 			oscillator.current.stop();

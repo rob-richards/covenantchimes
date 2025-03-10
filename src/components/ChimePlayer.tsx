@@ -369,6 +369,7 @@ export default function ChimePlayer() {
 						fill="#3A88D6"
 						fillRule="nonzero"
 					/>
+					{/* Chime 1 - C3 */}
 					<g
 						fill="none"
 						fillRule="nonzero"
@@ -385,6 +386,7 @@ export default function ChimePlayer() {
 							d="M483.286 196h20.172v330.449h-20.172z"
 						/>
 					</g>
+					{/* Chime 2 - C4 */}
 					<g
 						fill="none"
 						fillRule="nonzero"
@@ -405,6 +407,7 @@ export default function ChimePlayer() {
 							d="M391.449 195.551h20.172v296.37h-20.172z"
 						/>
 					</g>
+					{/* Chime 3 - D3 */}
 					<g
 						fill="none"
 						fillRule="nonzero"
@@ -425,6 +428,7 @@ export default function ChimePlayer() {
 							d="M299.152 195.551h20.172v254.298h-20.172z"
 						/>
 					</g>
+					{/* Chime 4 - Eb3 */}
 					<g
 						fill="none"
 						fillRule="nonzero"
@@ -445,6 +449,7 @@ export default function ChimePlayer() {
 							d="M206.855 195.551h20.172v218.096403h-20.172z"
 						/>
 					</g>
+					{/* Chime 5 - F3 */}
 					<g
 						fill="none"
 						fillRule="nonzero"
@@ -463,6 +468,27 @@ export default function ChimePlayer() {
 							fill="#4D4D4D"
 							opacity=".25"
 							d="M115.558 195.551h20.172v181.979709h-20.172z"
+						/>
+					</g>
+					{/* Chime 6 - G3 */}
+					<g
+						fill="none"
+						fillRule="nonzero"
+						className={`chime-bell ${isPlaying ? 'animate-swing-fast' : ''}`}
+						style={{ animationDelay: '500ms' }}
+					>
+						<path
+							d="M30.402 221.17c-3.482 0-6.304-2.823-6.304-6.304v-110.09c0-3.481 2.822-6.304 6.304-6.304s6.304 2.823 6.304 6.304v110.091c0 3.48-2.822 6.303-6.304 6.303z"
+							fill="#4D4D4D"
+						/>
+						<path
+							fill="#F7B239"
+							d="M53.73 195.551v150.979709H7.081V195.551h23.325"
+						/>
+						<path
+							fill="#4D4D4D"
+							opacity=".25"
+							d="M33.558 195.551h20.172v150.979709h-20.172z"
 						/>
 					</g>
 				</svg>
