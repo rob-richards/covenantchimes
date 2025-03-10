@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useSimpleAudio } from '@/hooks/useSimpleAudio';
 import { useAppStore } from '@/lib/store';
 import { getWeatherByCoordinates } from '@/lib/weatherService';
@@ -12,6 +12,9 @@ import {
 	FaExclamationTriangle,
 } from 'react-icons/fa';
 import LoadingSpinner from './ui/LoadingSpinner';
+
+// Global variable to store geolocation data across component remounts
+let cachedGeolocation: { latitude: number; longitude: number } | null = null;
 
 export default function ChimePlayer() {
 	const { isPlaying, isInitialized, startAudio, stopAudio } = useSimpleAudio();
@@ -30,104 +33,153 @@ export default function ChimePlayer() {
 	const [setupComplete, setSetupComplete] = useState(false);
 	const [autoStarted, setAutoStarted] = useState(false);
 	const [weatherFetched, setWeatherFetched] = useState(false);
+	const isFetchingRef = useRef(false);
+	const mountedRef = useRef(true);
 
 	// Fetch weather data immediately on component mount
 	useEffect(() => {
-		let isMounted = true;
+		// Set mounted ref to true when component mounts
+		mountedRef.current = true;
 
-		async function fetchWeatherData() {
-			if (weatherFetched || isLoading) return; // Don't fetch if we already have data or are loading
+		console.log(
+			'Weather effect running, weatherFetched:',
+			weatherFetched,
+			'isLoading:',
+			isLoading
+		);
 
-			try {
-				console.log('Fetching weather data');
-				setLoading(true);
-				setWeatherFetched(true); // Mark as fetched immediately to prevent duplicate requests
-
-				// Use browser geolocation if available, otherwise use a default location
-				if (navigator.geolocation) {
-					navigator.geolocation.getCurrentPosition(
-						async (position) => {
-							if (!isMounted) return;
-
-							try {
-								const { latitude, longitude } = position.coords;
-								console.log(`Got user location: ${latitude}, ${longitude}`);
-								const data = await getWeatherByCoordinates(latitude, longitude);
-
-								if (isMounted) {
-									setWeather(data);
-									setError(null);
-									setSetupComplete(true);
-									console.log('Weather data fetched successfully:', data);
-								}
-							} catch (locErr) {
-								console.error(
-									'Error fetching weather with user location:',
-									locErr
-								);
-								// Fall back to default location
-								fetchDefaultWeather();
-							} finally {
-								if (isMounted) {
-									setLoading(false);
-								}
-							}
-						},
-						(geoError) => {
-							console.error('Geolocation error:', geoError);
-							// Fall back to default location
-							fetchDefaultWeather();
-						},
-						{ timeout: 5000 } // 5 second timeout for geolocation
-					);
-				} else {
-					// Geolocation not supported, use default
-					fetchDefaultWeather();
-				}
-			} catch (err) {
-				console.error('Weather fetch setup error:', err);
-				fetchDefaultWeather();
-			}
+		// Only run this once
+		if (weatherFetched || isLoading || isFetchingRef.current) {
+			console.log('Skipping fetch - already fetched or in progress');
+			return;
 		}
 
-		// Helper function to fetch weather from a default location
-		async function fetchDefaultWeather() {
-			if (!isMounted) return;
+		// Mark as fetching to prevent duplicate requests
+		isFetchingRef.current = true;
+		setLoading(true);
+		setWeatherFetched(true);
 
-			try {
-				// Use San Francisco as default
-				const data = await getWeatherByCoordinates(37.7749, -122.4194);
+		// Function to fetch weather with coordinates
+		const fetchWeatherWithCoordinates = (
+			latitude: number,
+			longitude: number
+		) => {
+			console.log(
+				`Fetching weather for coordinates: ${latitude}, ${longitude}`
+			);
 
-				if (isMounted) {
-					setWeather(data);
-					setError(null);
-					setSetupComplete(true);
-					console.log('Default weather data fetched successfully:', data);
-				}
-			} catch (err) {
-				console.error('Default weather fetch error:', err);
+			getWeatherByCoordinates(latitude, longitude)
+				.then((data) => {
+					// Only update state if component is still mounted
+					if (mountedRef.current) {
+						console.log('Weather data fetched successfully:', data);
+						setWeather(data);
+						setError(null);
+						setSetupComplete(true);
+					} else {
+						console.log(
+							'Component unmounted, not updating state with weather data'
+						);
+					}
+				})
+				.catch((err) => {
+					console.error('Weather fetch error:', err);
+					// Only update state if component is still mounted
+					if (mountedRef.current) {
+						// Just complete setup without showing an error
+						setSetupComplete(true);
+					}
+				})
+				.finally(() => {
+					// Only update state if component is still mounted
+					if (mountedRef.current) {
+						console.log('Weather fetch complete, cleaning up');
+						setLoading(false);
+						isFetchingRef.current = false;
+					}
+				});
+		};
 
-				if (isMounted) {
-					// Just use default settings without showing an error
-					setSetupComplete(true);
-				}
-			} finally {
-				if (isMounted) {
-					setLoading(false);
-				}
-			}
+		// Try to use cached geolocation first (from previous attempts)
+		if (cachedGeolocation) {
+			console.log('Using cached geolocation:', cachedGeolocation);
+			fetchWeatherWithCoordinates(
+				cachedGeolocation.latitude,
+				cachedGeolocation.longitude
+			);
+			return;
 		}
 
-		fetchWeatherData();
+		// Try to get geolocation
+		if (navigator.geolocation) {
+			console.log('Requesting geolocation permission...');
 
-		// Cleanup function
+			// Set up a timeout for geolocation
+			const timeoutId = setTimeout(() => {
+				console.log('Geolocation timed out, using New York as fallback');
+				if (mountedRef.current && !cachedGeolocation) {
+					fetchWeatherWithCoordinates(40.7128, -74.006); // New York coordinates
+				}
+			}, 5000); // 5 second timeout
+
+			// Request geolocation
+			navigator.geolocation.getCurrentPosition(
+				(position) => {
+					// Clear the timeout since we got a position
+					clearTimeout(timeoutId);
+
+					const { latitude, longitude } = position.coords;
+					console.log(`Got user location: ${latitude}, ${longitude}`);
+
+					// Cache the geolocation for future use
+					cachedGeolocation = { latitude, longitude };
+
+					// Only proceed if component is still mounted and we haven't already fetched weather
+					if (mountedRef.current) {
+						fetchWeatherWithCoordinates(latitude, longitude);
+					}
+				},
+				(error) => {
+					// Clear the timeout since we got an error
+					clearTimeout(timeoutId);
+
+					console.error('Geolocation error:', error);
+
+					// Only proceed if component is still mounted and we haven't already fetched weather
+					if (mountedRef.current) {
+						console.log('Using New York as fallback due to geolocation error');
+						fetchWeatherWithCoordinates(40.7128, -74.006); // New York coordinates
+					}
+				},
+				{
+					timeout: 5000,
+					maximumAge: 600000, // Cache for 10 minutes
+					enableHighAccuracy: false,
+				}
+			);
+		} else {
+			// Geolocation not supported
+			console.log('Geolocation not supported, using New York as fallback');
+			fetchWeatherWithCoordinates(40.7128, -74.006); // New York coordinates
+		}
+
+		// Cleanup function to mark component as unmounted
 		return () => {
-			isMounted = false;
+			console.log('Weather effect cleanup - unmounting component');
+			mountedRef.current = false;
 		};
 	}, [weatherFetched, isLoading, setWeather, setLoading, setError]);
 
 	// Auto-start the chimes once setup is complete
 	useEffect(() => {
+		console.log(
+			'Auto-start effect running, setupComplete:',
+			setupComplete,
+			'isPlaying:',
+			isPlaying,
+			'autoStarted:',
+			autoStarted
+		);
 		if (setupComplete && !isPlaying && !autoStarted && !audioError) {
 			// Start immediately when setup is complete
 			console.log('Auto-starting chimes...');
@@ -207,6 +259,7 @@ export default function ChimePlayer() {
 
 	// Show loading spinner only during initial load
 	if (isLoading && !weatherFetched) {
+		console.log('Rendering loading spinner');
 		return (
 			<div className="w-full max-w-4xl p-6 bg-white rounded-lg shadow-md">
 				<div className="flex flex-col items-center justify-center h-64">
@@ -215,6 +268,7 @@ export default function ChimePlayer() {
 					<button
 						className="mt-6 px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
 						onClick={() => {
+							console.log('Skip loading button clicked');
 							setLoading(false);
 							setSetupComplete(true);
 						}}
@@ -228,6 +282,7 @@ export default function ChimePlayer() {
 
 	// Show audio error state
 	if (audioError) {
+		console.log('Rendering audio error state');
 		return (
 			<div className="w-full max-w-4xl p-6 bg-white rounded-lg shadow-md">
 				<div className="flex flex-col items-center justify-center h-64">
@@ -257,6 +312,10 @@ export default function ChimePlayer() {
 	}
 
 	// Main view with weather and chimes - show this as soon as we have weather data
+	console.log(
+		'Rendering main view, weather data:',
+		weather ? 'available' : 'not available'
+	);
 	return (
 		<div className="w-full max-w-4xl p-6 bg-white rounded-lg shadow-md">
 			{/* Weather Information - Always show at the top */}
@@ -274,15 +333,15 @@ export default function ChimePlayer() {
 							/>
 							<div className="ml-4 text-left">
 								<p className="text-3xl font-bold text-gray-900">
-									{weather.current.temp_c}°C
+									{Math.round(weather.current.temp_f)}°F
 								</p>
 								<p className="text-gray-600">
-									{weather.current.condition.text}
+									{Math.round(weather.current.temp_f)}°F
 								</p>
 							</div>
 						</div>
 						<div className="mt-2 text-sm text-gray-600">
-							Wind: {weather.current.wind_kph} km/h | Humidity:{' '}
+							Wind: {weather.current.wind_mph} mph | Humidity:{' '}
 							{weather.current.humidity}%
 						</div>
 					</>
