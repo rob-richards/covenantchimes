@@ -1,56 +1,39 @@
 {
-  "name": "Windchime-Weather-App",
-  "version": "0.0.1",
-  "description": "Windchime that plays based off of current weather conditions",
-  "main": "server.js",
-  "scripts": {
-    "start": "node server.js",
-    "build": "webpack",
-    "lint": "esw ./source/javascript/*.js",
-    "watch": "npm-run-all --parallel watch:*",
-    "watch:css": "node-sass -w ./source/scss/styles.scss ./public/assets/stylesheets/styles.css",
-    "watch:lint": "esw -w ./source/javascript/*.js",
-    "watch:webpack": "webpack --watch"
-  },
-  "engines": {
-    "node": "5.9.1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://bitbucket.org/robrichards/windchime"
-  },
-  "keywords": [
-    "Windchime",
-    "Weather"
-  ],
-  "author": "Rob Richards",
-  "license": "UNLICENSED",
-  "homepage": "https://bitbucket.org/robrichards/windchime",
-  "private": true,
-  "devDependencies": {
-    "autoprefixer": "^6.6.1",
-    "babel-core": "^6.21.0",
-    "babel-loader": "^6.2.10",
-    "babel-preset-latest": "^6.16.0",
-    "babili-webpack-plugin": "^0.0.10",
-    "browser-sync": "^2.18.6",
-    "browser-sync-webpack-plugin": "^1.1.3",
-    "docco": "^0.7.0",
-    "eslint": "^3.16.1",
-    "eslint-config-standard": "6.2.1",
-    "eslint-plugin-promise": "^3.4.0",
-    "eslint-plugin-standard": "2.0.1",
-    "eslint-watch": "^2.1.14",
-    "extract-text-webpack-plugin": "^2.0.0",
-    "node-sass": "^4.3.0",
-    "postcss-cli": "^2.6.0",
-    "webpack": "^1.14.0",
-    "yarn-run-all": "^3.1.1"
-  },
-  "dependencies": {
-    "express": "^4.14.1",
-    "global": "^4.3.1",
-    "compression": "^1.6.2",
-    "jquery": "^3.2.1"
-  }
+	"name": "covenant-chimes",
+	"version": "0.1.0",
+	"private": true,
+	"scripts": {
+		"dev": "next dev",
+		"dev:demo": "NEXT_PUBLIC_WEATHER_API_KEY=demo next dev",
+		"build": "next build",
+		"start": "next start",
+		"lint": "next lint",
+		"setup": "node setup-audio.js"
+	},
+	"dependencies": {
+		"@stripe/stripe-js": "^2.2.0",
+		"@vercel/analytics": "^1.1.1",
+		"axios": "^1.6.2",
+		"clsx": "^2.0.0",
+		"framer-motion": "^10.16.5",
+		"next": "^14.0.3",
+		"react": "^18.2.0",
+		"react-dom": "^18.2.0",
+		"react-icons": "^4.12.0",
+		"stripe": "^14.5.0",
+		"tailwind-merge": "^2.0.0",
+		"tone": "^14.7.77",
+		"zustand": "^4.4.6"
+	},
+	"devDependencies": {
+		"@types/node": "^20.9.4",
+		"@types/react": "^18.2.38",
+		"@types/react-dom": "^18.2.17",
+		"autoprefixer": "^10.4.16",
+		"eslint": "^8.54.0",
+		"eslint-config-next": "^14.0.3",
+		"postcss": "^8.4.31",
+		"tailwindcss": "^3.3.5",
+		"typescript": "^5.3.2"
+	}
 }

@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+	:root {
+		--background: 0 0% 100%;
+		--foreground: 222.2 84% 4.9%;
+	}
+
+	body {
+		@apply bg-gray-50 text-gray-900 min-h-screen;
+		font-feature-settings: 'rlig' 1, 'calt' 1;
+	}
+}
+
+@layer components {
+	.chime-bell {
+		transform-origin: top center;
+	}
+}
