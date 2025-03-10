@@ -17,7 +17,8 @@ import LoadingSpinner from './ui/LoadingSpinner';
 let cachedGeolocation: { latitude: number; longitude: number } | null = null;
 
 export default function ChimePlayer() {
-	const { isPlaying, isInitialized, startAudio, stopAudio } = useSimpleAudio();
+	const { isPlaying, isInitialized, activeChimes, startAudio, stopAudio } =
+		useSimpleAudio();
 	const {
 		weather,
 		isLoading,
@@ -28,7 +29,7 @@ export default function ChimePlayer() {
 		userSettings,
 		updateUserSettings,
 	} = useAppStore();
-	const [showControls, setShowControls] = useState(false);
+	const [showControls, setShowControls] = useState(true);
 	const [audioError, setAudioError] = useState<string | null>(null);
 	const [setupComplete, setSetupComplete] = useState(false);
 	const [autoStarted, setAutoStarted] = useState(false);
@@ -373,7 +374,10 @@ export default function ChimePlayer() {
 					<g
 						fill="none"
 						fillRule="nonzero"
-						className={`chime-bell ${isPlaying ? 'animate-swing-slow' : ''}`}
+						className={`chime-bell ${
+							isPlaying && activeChimes.c3 ? 'animate-swing-slow' : ''
+						}`}
+						style={{ transformOrigin: '479.59px 104.304px' }}
 					>
 						<path
 							d="M479.59 220.698c-3.482 0-6.304-2.823-6.304-6.304v-110.09c0-3.481 2.822-6.304 6.304-6.304s6.304 2.823 6.304 6.304v110.091c0 3.48-2.822 6.303-6.304 6.303z"
@@ -390,8 +394,13 @@ export default function ChimePlayer() {
 					<g
 						fill="none"
 						fillRule="nonzero"
-						className={`chime-bell ${isPlaying ? 'animate-swing-med' : ''}`}
-						style={{ animationDelay: '100ms' }}
+						className={`chime-bell ${
+							isPlaying && activeChimes.c4 ? 'animate-swing-med' : ''
+						}`}
+						style={{
+							animationDelay: '100ms',
+							transformOrigin: '388.293px 104.776px',
+						}}
 					>
 						<path
 							d="M388.293 221.17c-3.482 0-6.304-2.823-6.304-6.304v-110.09c0-3.481 2.822-6.304 6.304-6.304s6.304 2.823 6.304 6.304v110.091c0 3.48-2.821 6.303-6.304 6.303z"
@@ -411,8 +420,13 @@ export default function ChimePlayer() {
 					<g
 						fill="none"
 						fillRule="nonzero"
-						className={`chime-bell ${isPlaying ? 'animate-swing-fast' : ''}`}
-						style={{ animationDelay: '200ms' }}
+						className={`chime-bell ${
+							isPlaying && activeChimes.d3 ? 'animate-swing-fast' : ''
+						}`}
+						style={{
+							animationDelay: '200ms',
+							transformOrigin: '295.996px 104.776px',
+						}}
 					>
 						<path
 							d="M295.996 221.17c-3.482 0-6.304-2.823-6.304-6.304v-110.09c0-3.481 2.822-6.304 6.304-6.304s6.304 2.823 6.304 6.304v110.091c0 3.48-2.822 6.303-6.304 6.303z"
@@ -432,8 +446,13 @@ export default function ChimePlayer() {
 					<g
 						fill="none"
 						fillRule="nonzero"
-						className={`chime-bell ${isPlaying ? 'animate-swing-med' : ''}`}
-						style={{ animationDelay: '300ms' }}
+						className={`chime-bell ${
+							isPlaying && activeChimes.eb3 ? 'animate-swing-med' : ''
+						}`}
+						style={{
+							animationDelay: '300ms',
+							transformOrigin: '203.699px 104.776px',
+						}}
 					>
 						<path
 							d="M203.699 221.17c-3.482 0-6.304-2.823-6.304-6.304v-110.09c0-3.481 2.822-6.304 6.304-6.304s6.304 2.823 6.304 6.304v110.091c0 3.48-2.822 6.303-6.304 6.303z"
@@ -453,8 +472,13 @@ export default function ChimePlayer() {
 					<g
 						fill="none"
 						fillRule="nonzero"
-						className={`chime-bell ${isPlaying ? 'animate-swing-slow' : ''}`}
-						style={{ animationDelay: '400ms' }}
+						className={`chime-bell ${
+							isPlaying && activeChimes.f3 ? 'animate-swing-slow' : ''
+						}`}
+						style={{
+							animationDelay: '400ms',
+							transformOrigin: '112.402px 104.776px',
+						}}
 					>
 						<path
 							d="M112.402 221.17c-3.482 0-6.304-2.823-6.304-6.304v-110.09c0-3.481 2.822-6.304 6.304-6.304s6.304 2.823 6.304 6.304v110.091c0 3.48-2.822 6.303-6.304 6.303z"
@@ -474,8 +498,13 @@ export default function ChimePlayer() {
 					<g
 						fill="none"
 						fillRule="nonzero"
-						className={`chime-bell ${isPlaying ? 'animate-swing-fast' : ''}`}
-						style={{ animationDelay: '500ms' }}
+						className={`chime-bell ${
+							isPlaying && activeChimes.g3 ? 'animate-swing-fast' : ''
+						}`}
+						style={{
+							animationDelay: '500ms',
+							transformOrigin: '30.402px 104.776px',
+						}}
 					>
 						<path
 							d="M30.402 221.17c-3.482 0-6.304-2.823-6.304-6.304v-110.09c0-3.481 2.822-6.304 6.304-6.304s6.304 2.823 6.304 6.304v110.091c0 3.48-2.822 6.303-6.304 6.303z"

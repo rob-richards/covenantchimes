@@ -1,0 +1,78 @@
+/* Add these animation classes to the globals.css file */
+
+/* Set the transform box for all chime bells */
+.chime-bell {
+	transform-box: fill-box;
+}
+
+/* Slow swing animation with natural easing */
+@keyframes swing-slow {
+	0% {
+		transform: rotate(0deg);
+	}
+	25% {
+		transform: rotate(5deg);
+	}
+	50% {
+		transform: rotate(0deg);
+	}
+	75% {
+		transform: rotate(-5deg);
+	}
+	100% {
+		transform: rotate(0deg);
+	}
+}
+
+.animate-swing-slow {
+	animation: swing-slow 2.5s cubic-bezier(0.4, 0, 0.2, 1);
+	animation-iteration-count: 1;
+}
+
+/* Medium swing animation with natural easing */
+@keyframes swing-med {
+	0% {
+		transform: rotate(0deg);
+	}
+	25% {
+		transform: rotate(7deg);
+	}
+	50% {
+		transform: rotate(0deg);
+	}
+	75% {
+		transform: rotate(-7deg);
+	}
+	100% {
+		transform: rotate(0deg);
+	}
+}
+
+.animate-swing-med {
+	animation: swing-med 2s cubic-bezier(0.4, 0, 0.2, 1);
+	animation-iteration-count: 1;
+}
+
+/* Fast swing animation with natural easing */
+@keyframes swing-fast {
+	0% {
+		transform: rotate(0deg);
+	}
+	25% {
+		transform: rotate(10deg);
+	}
+	50% {
+		transform: rotate(0deg);
+	}
+	75% {
+		transform: rotate(-10deg);
+	}
+	100% {
+		transform: rotate(0deg);
+	}
+}
+
+.animate-swing-fast {
+	animation: swing-fast 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+	animation-iteration-count: 1;
+}

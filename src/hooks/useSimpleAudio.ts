@@ -80,6 +80,21 @@ export function useSimpleAudio() {
 	const { weather, userSettings } = useAppStore();
 	const [isPlaying, setIsPlaying] = useState(false);
 	const [isInitialized, setIsInitialized] = useState(false);
+	const [activeChimes, setActiveChimes] = useState<{
+		c3: boolean;
+		c4: boolean;
+		d3: boolean;
+		eb3: boolean;
+		f3: boolean;
+		g3: boolean;
+	}>({
+		c3: false,
+		c4: false,
+		d3: false,
+		eb3: false,
+		f3: false,
+		g3: false,
+	});
 
 	// Audio elements
 	const audioContext = useRef<AudioContext | null>(null);
@@ -211,9 +226,18 @@ export function useSimpleAudio() {
 			// Determine which ambience sample to use based on weather
 			const conditionText =
 				weather?.current?.condition?.text || DEFAULT_CONDITION;
+			const windSpeed = weather?.current?.wind_mph || DEFAULT_WIND_SPEED;
 			let ambienceSources = AUDIO_FILES.ambience.default;
 
-			if (isRainy(conditionText)) {
+			// First check wind speed - use low wind for speeds below 15mph
+			if (windSpeed < 15) {
+				console.log(
+					`Wind speed ${windSpeed} mph is below 15mph, using low wind sound`
+				);
+				ambienceSources = AUDIO_FILES.ambience.default; // very-low-wind.wav
+			}
+			// Then check weather conditions
+			else if (isRainy(conditionText)) {
 				ambienceSources = AUDIO_FILES.ambience.rain;
 			} else if (isSnowy(conditionText)) {
 				ambienceSources = AUDIO_FILES.ambience.snow;
@@ -399,7 +423,6 @@ export function useSimpleAudio() {
 			}
 
 			// Start playing chimes based on wind speed
-			const windSpeed = weather?.current?.wind_mph || DEFAULT_WIND_SPEED;
 			startChimes(windSpeed);
 
 			setIsPlaying(true);
@@ -430,32 +453,62 @@ export function useSimpleAudio() {
 		// Clear any existing intervals
 		clearChimeIntervals();
 
-		// Wind speed faster than 74mph is a hurricane
-		const swingProbability = Math.ceil((100 * windSpeed) / 74) / 100;
+		// If wind speed is below threshold, don't play chimes or play very rarely
+		const MIN_WIND_SPEED = 8; // mph - minimum wind speed to start moving chimes
+
+		// Calculate probability based on wind speed
+		// 0 at MIN_WIND_SPEED, increases as wind speed increases
+		// 74mph is hurricane force, so we use that as our max
+		let swingProbability = 0;
+		if (windSpeed > MIN_WIND_SPEED) {
+			swingProbability = Math.min(
+				(windSpeed - MIN_WIND_SPEED) / (74 - MIN_WIND_SPEED),
+				1
+			);
+		}
+
+		console.log(
+			`Wind speed: ${windSpeed} mph, Swing probability: ${swingProbability}`
+		);
 
 		// Create intervals for each chime with different timing
 		const chimeTypes = [
-			{ name: 'c3', delay: 0, alternating: true },
-			{ name: 'c4', delay: 100, alternating: true },
-			{ name: 'd3', delay: 200, alternating: true },
-			{ name: 'eb3', delay: 300, alternating: true },
-			{ name: 'f3', delay: 400, alternating: true },
-			{ name: 'g3', delay: 500, alternating: false },
+			{ name: 'c3', delay: 0, alternating: true, lowTone: true },
+			{ name: 'c4', delay: 100, alternating: true, lowTone: false },
+			{ name: 'd3', delay: 200, alternating: true, lowTone: true },
+			{ name: 'eb3', delay: 300, alternating: true, lowTone: true },
+			{ name: 'f3', delay: 400, alternating: true, lowTone: true },
+			{ name: 'g3', delay: 500, alternating: false, lowTone: true },
 		];
 
 		chimeTypes.forEach((chime, index) => {
-			// Calculate interval based on wind speed and add some randomness
-			const baseInterval = 5000 - windSpeed * 50;
+			// Calculate interval based on wind speed
+			// Higher wind speed = shorter intervals between chimes
+			const baseInterval =
+				windSpeed <= MIN_WIND_SPEED
+					? 10000 // Play every 10 seconds at low wind speeds (reduced from 30 seconds)
+					: Math.max(8000 - windSpeed * 100, 500); // Faster at higher wind speeds, minimum 500ms (reduced from 2000ms)
+
 			const randomFactor = Math.random() * 0.5 + 0.75; // 0.75 to 1.25
-			const interval =
-				Math.max(baseInterval * randomFactor, 1000) + chime.delay;
+			const interval = Math.max(baseInterval * randomFactor, 500) + chime.delay;
+
+			// Adjust probability based on tone at lower wind speeds
+			// At lower wind speeds, prioritize lower tone chimes
+			let chimeSpecificProbability = swingProbability;
+			if (windSpeed < 15 && chime.lowTone) {
+				// Boost probability for low tone chimes at low wind speeds
+				chimeSpecificProbability = Math.min(swingProbability * 2, 1);
+			} else if (windSpeed < 15 && !chime.lowTone) {
+				// Reduce probability for high tone chimes at low wind speeds
+				chimeSpecificProbability = swingProbability * 0.5;
+			}
 
 			let useA = true; // For alternating between A and B sounds
 
 			const intervalId = window.setInterval(() => {
 				try {
 					// Determine if this chime should play based on wind probability
-					if (Math.random() < swingProbability) {
+					if (Math.random() < chimeSpecificProbability) {
 						let chimeSound: HTMLAudioElement | null = null;
 
 						// Get the appropriate chime sound
@@ -487,11 +540,36 @@ export function useSimpleAudio() {
 									: (userSettings.volume.chimes + 30) / 36;
 
 							soundClone.volume = baseVolume * userVolume;
+
+							// Set the chime as active before playing
+							setActiveChimes((prev) => ({
+								...prev,
+								[chime.name]: true,
+							}));
+
+							// Play the sound
 							soundClone
 								.play()
-								.catch((err) =>
-									console.warn(`Error playing ${chime.name} chime:`, err)
-								);
+								.then(() => {
+									// Get the duration of the sound
+									const duration = soundClone.duration * 1000; // Convert to milliseconds
+
+									// Set a timeout to deactivate the chime when the sound ends
+									setTimeout(() => {
+										setActiveChimes((prev) => ({
+											...prev,
+											[chime.name]: false,
+										}));
+									}, duration);
+								})
+								.catch((err) => {
+									console.warn(`Error playing ${chime.name} chime:`, err);
+									// If there's an error, make sure to deactivate the chime
+									setActiveChimes((prev) => ({
+										...prev,
+										[chime.name]: false,
+									}));
+								});
 						}
 					}
 				} catch (e) {
@@ -502,7 +580,9 @@ export function useSimpleAudio() {
 			chimeIntervals.current.push(intervalId);
 		});
 
-		console.log(`Started ${chimeIntervals.current.length} chime intervals`);
+		console.log(
+			`Started ${chimeIntervals.current.length} chime intervals with wind speed ${windSpeed} mph`
+		);
 	};
 
 	// Clear all chime intervals
@@ -626,6 +706,7 @@ export function useSimpleAudio() {
 	return {
 		isPlaying,
 		isInitialized,
+		activeChimes,
 		startAudio,
 		stopAudio,
 	};
