@@ -10,9 +10,9 @@ const FALLBACK_WEATHER_DATA: WeatherData = {
 	location: {
 		name: 'Your Location',
 		country: 'Earth',
+		region: 'Earth',
 		lat: 0,
 		lon: 0,
-		region: 'Earth',
 	},
 	current: {
 		temp_c: 22,
