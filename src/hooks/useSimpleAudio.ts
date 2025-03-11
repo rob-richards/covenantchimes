@@ -514,7 +514,7 @@ export function useSimpleAudio() {
 		clearChimeIntervals();
 
 		// If wind speed is below threshold, don't play chimes or play very rarely
-		const MIN_WIND_SPEED = 8; // mph - minimum wind speed to start moving chimes
+		const MIN_WIND_SPEED = 5; // Reduced from 8 mph to allow more chimes at lower wind speeds
 
 		// Calculate probability based on wind speed
 		// 0 at MIN_WIND_SPEED, increases as wind speed increases
@@ -525,6 +525,8 @@ export function useSimpleAudio() {
 				(windSpeed - MIN_WIND_SPEED) / (74 - MIN_WIND_SPEED),
 				1
 			);
+			// Increase the base probability to get more chimes
+			swingProbability = Math.min(swingProbability * 1.5, 1);
 		}
 
 		console.log(
@@ -544,13 +546,14 @@ export function useSimpleAudio() {
 		chimeTypes.forEach((chime, index) => {
 			// Calculate interval based on wind speed
 			// Higher wind speed = shorter intervals between chimes
+			// Reduce the base interval to increase frequency
 			const baseInterval =
 				windSpeed <= MIN_WIND_SPEED
-					? 10000 // Play every 10 seconds at low wind speeds (reduced from 30 seconds)
-					: Math.max(8000 - windSpeed * 100, 500); // Faster at higher wind speeds, minimum 500ms (reduced from 2000ms)
+					? 6000 // Play every 6 seconds at low wind speeds (reduced from 10 seconds)
+					: Math.max(6000 - windSpeed * 120, 400); // Faster at higher wind speeds, minimum 400ms (reduced from 500ms)
 
 			const randomFactor = Math.random() * 0.5 + 0.75; // 0.75 to 1.25
-			const interval = Math.max(baseInterval * randomFactor, 500) + chime.delay;
+			const interval = Math.max(baseInterval * randomFactor, 400) + chime.delay;
 
 			// Adjust probability based on tone at lower wind speeds
 			// At lower wind speeds, prioritize lower tone chimes
@@ -588,31 +591,60 @@ export function useSimpleAudio() {
 							] as HTMLAudioElement;
 						}
 
-						if (chimeSound) {
-							// Clone the audio element to allow overlapping sounds
-							const soundClone = chimeSound.cloneNode() as HTMLAudioElement;
-
-							// Apply volume settings - base volume (0.4-0.7) adjusted by user settings
-							const baseVolume = Math.random() * 0.3 + 0.4; // Random volume between 0.4 and 0.7
-							const userVolume =
-								userSettings.mute.master || userSettings.mute.chimes
-									? 0
-									: (userSettings.volume.chimes + 30) / 36;
-
-							soundClone.volume = baseVolume * userVolume;
-
+						if (chimeSound && audioContext.current) {
 							// Set the chime as active before playing
 							setActiveChimes((prev) => ({
 								...prev,
 								[chime.name]: true,
 							}));
 
+							// Create an audio source from the audio element
+							const audioSource = audioContext.current.createMediaElementSource(
+								chimeSound.cloneNode() as HTMLAudioElement
+							);
+
+							// Create a gain node for volume control
+							const gainNode = audioContext.current.createGain();
+
+							// Calculate attack time based on wind speed
+							// Lower wind speed = longer attack time (softer transient)
+							// Higher wind speed = shorter attack time (sharper transient)
+							const attackTime =
+								windSpeed < 15
+									? Math.max(0.2 - windSpeed / 100, 0.05) // 0.05 to 0.2 seconds
+									: 0.01; // Very short attack for higher wind speeds
+
+							// Calculate base volume based on wind speed and randomness
+							const baseVolume = Math.random() * 0.3 + 0.4; // Random volume between 0.4 and 0.7
+							const userVolume =
+								userSettings.mute.master || userSettings.mute.chimes
+									? 0
+									: (userSettings.volume.chimes + 30) / 36;
+							const finalVolume = baseVolume * userVolume;
+
+							// Set initial gain to 0 (silent)
+							gainNode.gain.value = 0;
+
+							// Schedule the attack ramp
+							const currentTime = audioContext.current.currentTime;
+							gainNode.gain.setValueAtTime(0, currentTime);
+							gainNode.gain.linearRampToValueAtTime(
+								finalVolume,
+								currentTime + attackTime
+							);
+
+							// Connect the nodes
+							audioSource.connect(gainNode);
+							gainNode.connect(audioContext.current.destination);
+
 							// Play the sound
-							soundClone
+							(audioSource.mediaElement as HTMLAudioElement)
 								.play()
 								.then(() => {
 									// Get the duration of the sound
-									const duration = soundClone.duration * 1000; // Convert to milliseconds
+									const duration =
+										(audioSource.mediaElement as HTMLAudioElement).duration *
+										1000; // Convert to milliseconds
 
 									// Set a timeout to deactivate the chime when the sound ends
 									setTimeout(() => {
@@ -620,6 +652,14 @@ export function useSimpleAudio() {
 											...prev,
 											[chime.name]: false,
 										}));
+
+										// Clean up audio nodes
+										try {
+											gainNode.disconnect();
+											audioSource.disconnect();
+										} catch (err) {
+											console.warn('Error disconnecting audio nodes:', err);
+										}
 									}, duration);
 								})
 								.catch((err) => {
@@ -629,6 +669,17 @@ export function useSimpleAudio() {
 										...prev,
 										[chime.name]: false,
 									}));
+
+									// Clean up audio nodes
+									try {
+										gainNode.disconnect();
+										audioSource.disconnect();
+									} catch (cleanupErr) {
+										console.warn(
+											'Error disconnecting audio nodes:',
+											cleanupErr
+										);
+									}
 								});
 						}
 					}
