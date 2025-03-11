@@ -60,7 +60,7 @@ export default function ChimePlayer() {
 			condition: {
 				text: 'Clear',
 				code: 1000,
-				icon: '//cdn.weatherapi.com/weather/64x64/day/113.png',
+				icon: '', // Empty string as we're using React icons instead
 			},
 			wind_kph: 15,
 			wind_mph: 9.3,
@@ -88,7 +88,7 @@ export default function ChimePlayer() {
 				condition: {
 					text: conditionText,
 					code: conditionCode,
-					icon: `//cdn.weatherapi.com/weather/64x64/day/${conditionCode}.png`,
+					icon: '', // Empty string as placeholder, we'll use React icons instead
 				},
 				wind_mph: windSpeed,
 				wind_kph: windSpeed * 1.60934, // Convert mph to kph
@@ -510,11 +510,47 @@ export default function ChimePlayer() {
 							{weather.location.name}, {weather.location.region}
 						</h2>
 						<div className="flex items-center justify-center mt-2">
-							<img
-								src={weather.current.condition.icon}
-								alt={weather.current.condition.text}
-								className="w-16 h-16"
-							/>
+							<div className="w-16 h-16 flex items-center justify-center">
+								{(() => {
+									const code = weather.current.condition.code;
+									// Clear/Sunny
+									if (code === 1000) {
+										return <FaSun className="text-yellow-500 text-4xl" />;
+									}
+									// Cloudy conditions
+									else if (
+										[1003, 1006, 1009, 1030, 1135, 1147].includes(code)
+									) {
+										return <FaCloud className="text-gray-500 text-4xl" />;
+									}
+									// Rainy conditions
+									else if (
+										[
+											1063, 1150, 1153, 1168, 1171, 1180, 1183, 1186, 1189,
+											1192, 1195, 1198, 1201, 1240, 1243, 1246,
+										].includes(code)
+									) {
+										return <FaCloudRain className="text-blue-500 text-4xl" />;
+									}
+									// Snowy conditions
+									else if (
+										[
+											1066, 1114, 1117, 1210, 1213, 1216, 1219, 1222, 1225,
+											1255, 1258, 1279, 1282,
+										].includes(code)
+									) {
+										return <FaSnowflake className="text-blue-300 text-4xl" />;
+									}
+									// Stormy conditions
+									else if ([1087, 1273, 1276, 1279, 1282].includes(code)) {
+										return <FaBolt className="text-yellow-600 text-4xl" />;
+									}
+									// Windy (default to sun with wind for simplicity)
+									else {
+										return <FaWind className="text-gray-600 text-4xl" />;
+									}
+								})()}
+							</div>
 							<div className="ml-4 text-left">
 								<p className="text-3xl font-bold text-gray-900">
 									{Math.round(weather.current.temp_f)}°F
