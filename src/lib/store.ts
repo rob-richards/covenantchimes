@@ -44,7 +44,7 @@ const defaultPack: AudioPack = {
 const defaultUserSettings: UserSettings = {
 	volume: {
 		master: 0, // 0 dB (normal volume)
-		drone: -25, // -10 dB (lower than normal to reduce drone volume)
+		drone: -20, // -10 dB (lower than normal to reduce drone volume)
 		ambience: 15, // +3 dB (slightly higher than normal to boost ambience)
 		chimes: 0, // 0 dB (normal volume)
 	},
@@ -59,9 +59,9 @@ const defaultUserSettings: UserSettings = {
 		enabled: false,
 		frequency: 432, // Legacy field, kept for backward compatibility
 		carrierFrequency: 400, // Carrier frequency (400Hz is optimal for binaural beats)
-		beatFrequency: 10, // Beat frequency (difference between left and right ear)
-		preset: 'alpha', // Default to alpha waves (relaxed, calm)
-		volume: 0.1, // Default volume for binaural beats
+		beatFrequency: 4, // Beat frequency (difference between left and right ear)
+		preset: 'theta', // Default to alpha waves (relaxed, calm)
+		volume: 0.02, // Default volume for binaural beats
 	},
 };
 
