@@ -675,7 +675,7 @@ export default function ChimePlayer() {
 						}`}
 						style={{
 							animationDelay: '0ms',
-							transformOrigin: '386.996px 104.776px',
+							transformOrigin: '479.59px 104.304px',
 						}}
 					>
 						<path
@@ -700,7 +700,7 @@ export default function ChimePlayer() {
 						}`}
 						style={{
 							animationDelay: '100ms',
-							transformOrigin: '295.996px 104.776px',
+							transformOrigin: '388.293px 104.304px',
 						}}
 					>
 						<path
@@ -728,7 +728,7 @@ export default function ChimePlayer() {
 						}`}
 						style={{
 							animationDelay: '200ms',
-							transformOrigin: '249.699px 104.776px',
+							transformOrigin: '295.996px 104.304px',
 						}}
 					>
 						<path
@@ -756,7 +756,7 @@ export default function ChimePlayer() {
 						}`}
 						style={{
 							animationDelay: '300ms',
-							transformOrigin: '203.699px 104.776px',
+							transformOrigin: '203.699px 104.304px',
 						}}
 					>
 						<path
@@ -784,7 +784,7 @@ export default function ChimePlayer() {
 						}`}
 						style={{
 							animationDelay: '400ms',
-							transformOrigin: '112.402px 104.776px',
+							transformOrigin: '112.402px 104.304px',
 						}}
 					>
 						<path
@@ -812,7 +812,7 @@ export default function ChimePlayer() {
 						}`}
 						style={{
 							animationDelay: '500ms',
-							transformOrigin: '30.402px 104.776px',
+							transformOrigin: '30.402px 104.304px',
 						}}
 					>
 						<path
