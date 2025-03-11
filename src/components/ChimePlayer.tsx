@@ -664,16 +664,19 @@ export default function ChimePlayer() {
 						fill="#3A88D6"
 						fillRule="nonzero"
 					/>
-					{/* Chime 1 - C3 */}
+					{/* Chime 1 - C2 */}
 					<g
 						fill="none"
 						fillRule="nonzero"
 						className={`chime-bell ${
-							isPlaying && activeChimes.c3
-								? getSwingAnimationClass('animate-swing-slow')
+							isPlaying && activeChimes.c2
+								? getSwingAnimationClass('animate-swing-fast')
 								: ''
 						}`}
-						style={{ transformOrigin: '479.59px 104.304px' }}
+						style={{
+							animationDelay: '0ms',
+							transformOrigin: '386.996px 104.776px',
+						}}
 					>
 						<path
 							d="M479.59 220.698c-3.482 0-6.304-2.823-6.304-6.304v-110.09c0-3.481 2.822-6.304 6.304-6.304s6.304 2.823 6.304 6.304v110.091c0 3.48-2.822 6.303-6.304 6.303z"
@@ -686,18 +689,18 @@ export default function ChimePlayer() {
 							d="M483.286 196h20.172v330.449h-20.172z"
 						/>
 					</g>
-					{/* Chime 2 - C4 */}
+					{/* Chime 2 - D2 */}
 					<g
 						fill="none"
 						fillRule="nonzero"
 						className={`chime-bell ${
-							isPlaying && activeChimes.c4
+							isPlaying && activeChimes.d2
 								? getSwingAnimationClass('animate-swing-med')
 								: ''
 						}`}
 						style={{
 							animationDelay: '100ms',
-							transformOrigin: '388.293px 104.776px',
+							transformOrigin: '295.996px 104.776px',
 						}}
 					>
 						<path
@@ -714,18 +717,18 @@ export default function ChimePlayer() {
 							d="M391.449 195.551h20.172v296.37h-20.172z"
 						/>
 					</g>
-					{/* Chime 3 - D3 */}
+					{/* Chime 3 - E2 */}
 					<g
 						fill="none"
 						fillRule="nonzero"
 						className={`chime-bell ${
-							isPlaying && activeChimes.d3
-								? getSwingAnimationClass('animate-swing-fast')
+							isPlaying && activeChimes.e2
+								? getSwingAnimationClass('animate-swing-slow')
 								: ''
 						}`}
 						style={{
 							animationDelay: '200ms',
-							transformOrigin: '295.996px 104.776px',
+							transformOrigin: '249.699px 104.776px',
 						}}
 					>
 						<path
@@ -742,12 +745,12 @@ export default function ChimePlayer() {
 							d="M299.152 195.551h20.172v254.298h-20.172z"
 						/>
 					</g>
-					{/* Chime 4 - Eb3 */}
+					{/* Chime 4 - G2 */}
 					<g
 						fill="none"
 						fillRule="nonzero"
 						className={`chime-bell ${
-							isPlaying && activeChimes.eb3
+							isPlaying && activeChimes.g2
 								? getSwingAnimationClass('animate-swing-med')
 								: ''
 						}`}
@@ -770,12 +773,12 @@ export default function ChimePlayer() {
 							d="M206.855 195.551h20.172v218.096403h-20.172z"
 						/>
 					</g>
-					{/* Chime 5 - F3 */}
+					{/* Chime 5 - A2 */}
 					<g
 						fill="none"
 						fillRule="nonzero"
 						className={`chime-bell ${
-							isPlaying && activeChimes.f3
+							isPlaying && activeChimes.a2
 								? getSwingAnimationClass('animate-swing-slow')
 								: ''
 						}`}
@@ -798,12 +801,12 @@ export default function ChimePlayer() {
 							d="M115.558 195.551h20.172v181.979709h-20.172z"
 						/>
 					</g>
-					{/* Chime 6 - G3 */}
+					{/* Chime 6 - C3 */}
 					<g
 						fill="none"
 						fillRule="nonzero"
 						className={`chime-bell ${
-							isPlaying && activeChimes.g3
+							isPlaying && activeChimes.c3
 								? getSwingAnimationClass('animate-swing-fast')
 								: ''
 						}`}
@@ -947,6 +950,76 @@ export default function ChimePlayer() {
 					</button>
 				</div>
 			</div>
+			{/* Chime Status Indicators */}
+			{/* <div className="mt-6 px-4">
+				<h3 className="text-md bold font-medium text-gray-700 my-3 text-center">
+					Active Chimes
+				</h3>
+				<div className="flex justify-center gap-3 flex-wrap">
+					<div
+						className={`w-10 h-10 rounded-full flex items-center justify-center ${
+							activeChimes.c3
+								? 'bg-primary-500 text-white'
+								: 'bg-gray-200 text-gray-500'
+						}`}
+						title="C3 (Base Note)"
+					>
+						C3
+					</div>
+
+					<div
+						className={`w-10 h-10 rounded-full flex items-center justify-center ${
+							activeChimes.a2
+								? 'bg-primary-500 text-white'
+								: 'bg-gray-200 text-gray-500'
+						}`}
+						title="A2"
+					>
+						A2
+					</div>
+
+					<div
+						className={`w-10 h-10 rounded-full flex items-center justify-center ${
+							activeChimes.g2
+								? 'bg-primary-500 text-white'
+								: 'bg-gray-200 text-gray-500'
+						}`}
+						title="G2"
+					>
+						G2
+					</div>
+					<div
+						className={`w-10 h-10 rounded-full flex items-center justify-center ${
+							activeChimes.e2
+								? 'bg-primary-500 text-white'
+								: 'bg-gray-200 text-gray-500'
+						}`}
+						title="E2"
+					>
+						E2
+					</div>
+					<div
+						className={`w-10 h-10 rounded-full flex items-center justify-center ${
+							activeChimes.d2
+								? 'bg-primary-500 text-white'
+								: 'bg-gray-200 text-gray-500'
+						}`}
+						title="D2"
+					>
+						D2
+					</div>
+					<div
+						className={`w-10 h-10 rounded-full flex items-center justify-center ${
+							activeChimes.c2
+								? 'bg-primary-500 text-white'
+								: 'bg-gray-200 text-gray-500'
+						}`}
+						title="C2 (Octave Down)"
+					>
+						C2
+					</div>
+				</div>
+			</div> */}
 			{/* Audio Controls */}
 			<div className="mt-6">
 				<button

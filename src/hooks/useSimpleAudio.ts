@@ -11,40 +11,10 @@ const DEFAULT_CONDITION = 'Partly cloudy';
 // Audio file paths with fallbacks
 const AUDIO_FILES = {
 	chimes: {
-		c3: {
-			a: '/assets/audio/chime-c3-a.wav',
-			b: '/assets/audio/chime-c3-b.wav',
+		base: {
+			primary: '/assets/audio/chime-c3-a.wav',
 			fallback:
 				'https://assets.mixkit.co/sfx/preview/mixkit-small-church-bell-588.mp3',
-		},
-		c4: {
-			a: '/assets/audio/chime-c4-a.wav',
-			b: '/assets/audio/chime-c4-b.wav',
-			fallback:
-				'https://assets.mixkit.co/sfx/preview/mixkit-cathedral-church-bell-599.mp3',
-		},
-		d3: {
-			a: '/assets/audio/chime-d3-a.wav',
-			b: '/assets/audio/chime-d3-b.wav',
-			fallback:
-				'https://assets.mixkit.co/sfx/preview/mixkit-church-bell-triple-hit-583.mp3',
-		},
-		eb3: {
-			a: '/assets/audio/chime-eb3-a.wav',
-			b: '/assets/audio/chime-eb3-b.wav',
-			fallback:
-				'https://assets.mixkit.co/sfx/preview/mixkit-short-church-bell-588.mp3',
-		},
-		f3: {
-			a: '/assets/audio/chime-f3-a.wav',
-			b: '/assets/audio/chime-f3-b.wav',
-			fallback:
-				'https://assets.mixkit.co/sfx/preview/mixkit-small-church-bell-588.mp3',
-		},
-		g3: {
-			single: '/assets/audio/chime-g3.wav',
-			fallback:
-				'https://assets.mixkit.co/sfx/preview/mixkit-church-bell-hit-592.mp3',
 		},
 	},
 	drone: {
@@ -76,24 +46,36 @@ const AUDIO_FILES = {
 	},
 };
 
+// Pentatonic scale playback rates
+// Major pentatonic: 1, 8/9, 4/5, 2/3, 3/5, 1/2
+// These values create a C major pentatonic scale (C, A, G, E, D, C) going down
+const PENTATONIC_RATES = {
+	c3: 1.0, // C3 (base note)
+	a2: 5 / 6, // A2 (5 semitones down)
+	g2: 2 / 3, // G2 (7 semitones down)
+	e2: 3 / 5, // E2 (9 semitones down)
+	d2: 4 / 9, // D2 (10 semitones down)
+	c2: 1 / 2, // C2 (octave down)
+};
+
 export function useSimpleAudio() {
 	const { weather, userSettings } = useAppStore();
 	const [isPlaying, setIsPlaying] = useState(false);
 	const [isInitialized, setIsInitialized] = useState(false);
 	const [activeChimes, setActiveChimes] = useState<{
 		c3: boolean;
-		c4: boolean;
-		d3: boolean;
-		eb3: boolean;
-		f3: boolean;
-		g3: boolean;
+		a2: boolean;
+		g2: boolean;
+		e2: boolean;
+		d2: boolean;
+		c2: boolean;
 	}>({
 		c3: false,
-		c4: false,
-		d3: false,
-		eb3: false,
-		f3: false,
-		g3: false,
+		a2: false,
+		g2: false,
+		e2: false,
+		d2: false,
+		c2: false,
 	});
 
 	// Audio elements
@@ -110,22 +92,8 @@ export function useSimpleAudio() {
 		[key: string]: HTMLAudioElement | null;
 	}>({});
 
-	// Chime audio elements
-	const chimeAudios = useRef<{
-		c3: { a: HTMLAudioElement | null; b: HTMLAudioElement | null };
-		c4: { a: HTMLAudioElement | null; b: HTMLAudioElement | null };
-		d3: { a: HTMLAudioElement | null; b: HTMLAudioElement | null };
-		eb3: { a: HTMLAudioElement | null; b: HTMLAudioElement | null };
-		f3: { a: HTMLAudioElement | null; b: HTMLAudioElement | null };
-		g3: HTMLAudioElement | null;
-	}>({
-		c3: { a: null, b: null },
-		c4: { a: null, b: null },
-		d3: { a: null, b: null },
-		eb3: { a: null, b: null },
-		f3: { a: null, b: null },
-		g3: null,
-	});
+	// Single base chime audio element
+	const baseChimeAudio = useRef<HTMLAudioElement | null>(null);
 
 	// Initialize audio
 	const initializeAudio = async () => {
@@ -271,25 +239,11 @@ export function useSimpleAudio() {
 				ambienceAudio.current.src = '';
 			}
 
-			// Clean up all chime audio elements
-			Object.keys(chimeAudios.current).forEach((key) => {
-				const chime =
-					chimeAudios.current[key as keyof typeof chimeAudios.current];
-				if (chime) {
-					if ('a' in chime && chime.a) {
-						chime.a.pause();
-						chime.a.src = '';
-					}
-					if ('b' in chime && chime.b) {
-						chime.b.pause();
-						chime.b.src = '';
-					}
-					if (!('a' in chime) && chime) {
-						(chime as HTMLAudioElement).pause();
-						(chime as HTMLAudioElement).src = '';
-					}
-				}
-			});
+			// Clean up base chime audio element
+			if (baseChimeAudio.current) {
+				baseChimeAudio.current.pause();
+				baseChimeAudio.current.src = '';
+			}
 
 			if (oscillatorLeft.current) {
 				oscillatorLeft.current.stop();
@@ -341,82 +295,14 @@ export function useSimpleAudio() {
 				ambienceAudio.current = ambience;
 				console.log('Ambience playing');
 
-				// Load all chime sounds
-				console.log('Loading chime audio files...');
-
-				// Load C3 chimes
-				chimeAudios.current.c3.a = await loadAudioWithFallback(
-					AUDIO_FILES.chimes.c3.a,
-					AUDIO_FILES.chimes.c3.fallback
+				// Load base chime sound
+				console.log('Loading base chime audio file...');
+				baseChimeAudio.current = await loadAudioWithFallback(
+					AUDIO_FILES.chimes.base.primary,
+					AUDIO_FILES.chimes.base.fallback
 				);
-				chimeAudios.current.c3.a.volume = 1;
-
-				chimeAudios.current.c3.b = await loadAudioWithFallback(
-					AUDIO_FILES.chimes.c3.b,
-					AUDIO_FILES.chimes.c3.fallback
-				);
-				chimeAudios.current.c3.b.volume = 1;
-
-				// Load C4 chimes
-				chimeAudios.current.c4.a = await loadAudioWithFallback(
-					AUDIO_FILES.chimes.c4.a,
-					AUDIO_FILES.chimes.c4.fallback
-				);
-				chimeAudios.current.c4.a.volume = 1;
-
-				chimeAudios.current.c4.b = await loadAudioWithFallback(
-					AUDIO_FILES.chimes.c4.b,
-					AUDIO_FILES.chimes.c4.fallback
-				);
-				chimeAudios.current.c4.b.volume = 1;
-
-				// Load D3 chimes
-				chimeAudios.current.d3.a = await loadAudioWithFallback(
-					AUDIO_FILES.chimes.d3.a,
-					AUDIO_FILES.chimes.d3.fallback
-				);
-				chimeAudios.current.d3.a.volume = 1;
-
-				chimeAudios.current.d3.b = await loadAudioWithFallback(
-					AUDIO_FILES.chimes.d3.b,
-					AUDIO_FILES.chimes.d3.fallback
-				);
-				chimeAudios.current.d3.b.volume = 1;
-
-				// Load Eb3 chimes
-				chimeAudios.current.eb3.a = await loadAudioWithFallback(
-					AUDIO_FILES.chimes.eb3.a,
-					AUDIO_FILES.chimes.eb3.fallback
-				);
-				chimeAudios.current.eb3.a.volume = 1;
-
-				chimeAudios.current.eb3.b = await loadAudioWithFallback(
-					AUDIO_FILES.chimes.eb3.b,
-					AUDIO_FILES.chimes.eb3.fallback
-				);
-				chimeAudios.current.eb3.b.volume = 1;
-
-				// Load F3 chimes
-				chimeAudios.current.f3.a = await loadAudioWithFallback(
-					AUDIO_FILES.chimes.f3.a,
-					AUDIO_FILES.chimes.f3.fallback
-				);
-				chimeAudios.current.f3.a.volume = 1;
-
-				chimeAudios.current.f3.b = await loadAudioWithFallback(
-					AUDIO_FILES.chimes.f3.b,
-					AUDIO_FILES.chimes.f3.fallback
-				);
-				chimeAudios.current.f3.b.volume = 1;
-
-				// Load G3 chime
-				chimeAudios.current.g3 = await loadAudioWithFallback(
-					AUDIO_FILES.chimes.g3.single,
-					AUDIO_FILES.chimes.g3.fallback
-				);
-				chimeAudios.current.g3.volume = 1;
-
-				console.log('All chime sounds loaded successfully');
+				baseChimeAudio.current.volume = 1;
+				console.log('Base chime sound loaded successfully');
 			} catch (audioError) {
 				console.error('Error loading audio:', audioError);
 				// Continue even if some audio files fail to load
@@ -497,16 +383,9 @@ export function useSimpleAudio() {
 
 	// Play chimes based on wind speed
 	const startChimes = (windSpeed: number) => {
-		// Check if chime audio is loaded
-		if (
-			!chimeAudios.current.c3.a ||
-			!chimeAudios.current.c4.a ||
-			!chimeAudios.current.d3.a ||
-			!chimeAudios.current.eb3.a ||
-			!chimeAudios.current.f3.a ||
-			!chimeAudios.current.g3
-		) {
-			console.warn('Cannot start chimes: not all chime audio files are loaded');
+		// Check if base chime audio is loaded
+		if (!baseChimeAudio.current) {
+			console.warn('Cannot start chimes: base chime audio file is not loaded');
 			return;
 		}
 
@@ -535,12 +414,12 @@ export function useSimpleAudio() {
 
 		// Create intervals for each chime with different timing
 		const chimeTypes = [
-			{ name: 'c3', delay: 0, alternating: true, lowTone: true },
-			{ name: 'c4', delay: 100, alternating: true, lowTone: false },
-			{ name: 'd3', delay: 200, alternating: true, lowTone: true },
-			{ name: 'eb3', delay: 300, alternating: true, lowTone: true },
-			{ name: 'f3', delay: 400, alternating: true, lowTone: true },
-			{ name: 'g3', delay: 500, alternating: false, lowTone: true },
+			{ name: 'c2', delay: 0, lowTone: true, rate: PENTATONIC_RATES.c2 },
+			{ name: 'd2', delay: 100, lowTone: true, rate: PENTATONIC_RATES.d2 },
+			{ name: 'e2', delay: 200, lowTone: true, rate: PENTATONIC_RATES.e2 },
+			{ name: 'g2', delay: 300, lowTone: true, rate: PENTATONIC_RATES.g2 },
+			{ name: 'a2', delay: 400, lowTone: true, rate: PENTATONIC_RATES.a2 },
+			{ name: 'c3', delay: 500, lowTone: false, rate: PENTATONIC_RATES.c3 },
 		];
 
 		chimeTypes.forEach((chime, index) => {
@@ -566,87 +445,74 @@ export function useSimpleAudio() {
 				chimeSpecificProbability = swingProbability * 0.5;
 			}
 
-			let useA = true; // For alternating between A and B sounds
-
 			const intervalId = window.setInterval(() => {
 				try {
 					// Determine if this chime should play based on wind probability
 					if (Math.random() < chimeSpecificProbability) {
-						let chimeSound: HTMLAudioElement | null = null;
-
-						// Get the appropriate chime sound
-						if (chime.alternating) {
-							const chimePair =
-								chimeAudios.current[
-									chime.name as keyof typeof chimeAudios.current
-								];
-							if (chimePair && 'a' in chimePair && 'b' in chimePair) {
-								chimeSound = useA ? chimePair.a : chimePair.b;
-								useA = !useA; // Alternate for next time
-							}
-						} else {
-							// For G3 which doesn't alternate
-							chimeSound = chimeAudios.current[
-								chime.name as keyof typeof chimeAudios.current
-							] as HTMLAudioElement;
-						}
-
-						if (chimeSound && audioContext.current) {
+						if (baseChimeAudio.current && audioContext.current) {
 							// Set the chime as active before playing
 							setActiveChimes((prev) => ({
 								...prev,
 								[chime.name]: true,
 							}));
 
-							// Create an audio source from the audio element
-							const audioSource = audioContext.current.createMediaElementSource(
-								chimeSound.cloneNode() as HTMLAudioElement
-							);
+							// Create a buffer source for better pitch shifting
+							const audioBuffer = audioContext.current.createBufferSource();
 
-							// Create a gain node for volume control
-							const gainNode = audioContext.current.createGain();
+							// Create an audio element to load the sound
+							const tempAudio = new Audio(baseChimeAudio.current.src);
 
-							// Calculate attack time based on wind speed
-							// Lower wind speed = longer attack time (softer transient)
-							// Higher wind speed = shorter attack time (sharper transient)
-							const attackTime =
-								windSpeed < 15
-									? Math.max(0.2 - windSpeed / 100, 0.05) // 0.05 to 0.2 seconds
-									: 0.01; // Very short attack for higher wind speeds
+							// Create a fetch request to get the audio data
+							fetch(tempAudio.src)
+								.then((response) => response.arrayBuffer())
+								.then((arrayBuffer) =>
+									audioContext.current!.decodeAudioData(arrayBuffer)
+								)
+								.then((audioBuffer) => {
+									// Create a buffer source
+									const source = audioContext.current!.createBufferSource();
+									source.buffer = audioBuffer;
 
-							// Calculate base volume based on wind speed and randomness
-							const baseVolume = Math.random() * 0.3 + 0.4; // Random volume between 0.4 and 0.7
-							const userVolume =
-								userSettings.mute.master || userSettings.mute.chimes
-									? 0
-									: (userSettings.volume.chimes + 30) / 36;
-							const finalVolume = baseVolume * userVolume;
+									// Set the playback rate for pitch shifting
+									source.playbackRate.value = chime.rate;
 
-							// Set initial gain to 0 (silent)
-							gainNode.gain.value = 0;
+									// Create a gain node for volume control
+									const gainNode = audioContext.current!.createGain();
 
-							// Schedule the attack ramp
-							const currentTime = audioContext.current.currentTime;
-							gainNode.gain.setValueAtTime(0, currentTime);
-							gainNode.gain.linearRampToValueAtTime(
-								finalVolume,
-								currentTime + attackTime
-							);
+									// Calculate attack time based on wind speed
+									const attackTime =
+										windSpeed < 15
+											? Math.max(0.2 - windSpeed / 100, 0.05) // 0.05 to 0.2 seconds
+											: 0.01; // Very short attack for higher wind speeds
 
-							// Connect the nodes
-							audioSource.connect(gainNode);
-							gainNode.connect(audioContext.current.destination);
+									// Calculate base volume based on wind speed and randomness
+									const baseVolume = Math.random() * 0.3 + 0.4; // Random volume between 0.4 and 0.7
+									const userVolume =
+										userSettings.mute.master || userSettings.mute.chimes
+											? 0
+											: (userSettings.volume.chimes + 30) / 36;
+									const finalVolume = baseVolume * userVolume;
 
-							// Play the sound
-							(audioSource.mediaElement as HTMLAudioElement)
-								.play()
-								.then(() => {
-									// Get the duration of the sound
-									const duration =
-										(audioSource.mediaElement as HTMLAudioElement).duration *
-										1000; // Convert to milliseconds
+									// Set initial gain to 0 (silent)
+									gainNode.gain.value = 0;
+
+									// Schedule the attack ramp
+									const currentTime = audioContext.current!.currentTime;
+									gainNode.gain.setValueAtTime(0, currentTime);
+									gainNode.gain.linearRampToValueAtTime(
+										finalVolume,
+										currentTime + attackTime
+									);
+
+									// Connect the nodes
+									source.connect(gainNode);
+									gainNode.connect(audioContext.current!.destination);
+
+									// Start the source
+									source.start(0);
 
 									// Set a timeout to deactivate the chime when the sound ends
+									const duration = audioBuffer.duration * 1000;
 									setTimeout(() => {
 										setActiveChimes((prev) => ({
 											...prev,
@@ -656,30 +522,21 @@ export function useSimpleAudio() {
 										// Clean up audio nodes
 										try {
 											gainNode.disconnect();
-											audioSource.disconnect();
+											source.disconnect();
 										} catch (err) {
 											console.warn('Error disconnecting audio nodes:', err);
 										}
 									}, duration);
 								})
 								.catch((err) => {
-									console.warn(`Error playing ${chime.name} chime:`, err);
-									// If there's an error, make sure to deactivate the chime
+									console.warn(
+										`Error processing audio for ${chime.name} chime:`,
+										err
+									);
 									setActiveChimes((prev) => ({
 										...prev,
 										[chime.name]: false,
 									}));
-
-									// Clean up audio nodes
-									try {
-										gainNode.disconnect();
-										audioSource.disconnect();
-									} catch (cleanupErr) {
-										console.warn(
-											'Error disconnecting audio nodes:',
-											cleanupErr
-										);
-									}
 								});
 						}
 					}
@@ -713,25 +570,10 @@ export function useSimpleAudio() {
 		clearChimeIntervals();
 
 		// Stop and clean up all audio elements
-		Object.keys(chimeAudios.current).forEach((key) => {
-			const chime =
-				chimeAudios.current[key as keyof typeof chimeAudios.current];
-			if (chime && typeof chime === 'object' && 'a' in chime) {
-				// Handle alternating chimes with a/b properties
-				if (chime.a) {
-					chime.a.pause();
-					chime.a.currentTime = 0;
-				}
-				if (chime.b) {
-					chime.b.pause();
-					chime.b.currentTime = 0;
-				}
-			} else if (chime instanceof HTMLAudioElement) {
-				// Handle single audio element
-				chime.pause();
-				chime.currentTime = 0;
-			}
-		});
+		if (baseChimeAudio.current) {
+			baseChimeAudio.current.pause();
+			baseChimeAudio.current.currentTime = 0;
+		}
 
 		// Stop and clean up drone audio
 		if (droneAudio.current) {
@@ -745,7 +587,17 @@ export function useSimpleAudio() {
 			ambienceAudio.current.currentTime = 0;
 		}
 
-		// Stop and clean up binaural beat oscillators
+		// Reset active chimes
+		setActiveChimes({
+			c3: false,
+			a2: false,
+			g2: false,
+			e2: false,
+			d2: false,
+			c2: false,
+		});
+
+		// Stop binaural beats
 		if (oscillatorLeft.current) {
 			oscillatorLeft.current.stop();
 			oscillatorLeft.current.disconnect();
@@ -757,26 +609,6 @@ export function useSimpleAudio() {
 			oscillatorRight.current.disconnect();
 			oscillatorRight.current = null;
 		}
-
-		if (binauralGain.current) {
-			binauralGain.current.disconnect();
-			binauralGain.current = null;
-		}
-
-		if (stereoPanner.current) {
-			stereoPanner.current.disconnect();
-			stereoPanner.current = null;
-		}
-
-		// Reset active chimes
-		setActiveChimes({
-			c3: false,
-			c4: false,
-			d3: false,
-			eb3: false,
-			f3: false,
-			g3: false,
-		});
 
 		setIsPlaying(false);
 		console.log('Audio stopped successfully');
