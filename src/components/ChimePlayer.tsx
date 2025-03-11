@@ -577,117 +577,6 @@ export default function ChimePlayer() {
 				)}
 			</div>
 
-			{/* Weather Simulation Buttons */}
-			<div className="mb-6 px-4">
-				<h3 className="text-sm font-medium text-gray-700 mb-3 text-center">
-					Simulate Weather Conditions
-				</h3>
-				<div className="flex flex-wrap justify-center gap-2">
-					<button
-						className={`px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors flex items-center gap-2 ${
-							(isWeatherCondition('clear') || isWeatherCondition('sunny')) &&
-							isWindSpeed(0, 7)
-								? 'bg-gray-100 border-primary-500 font-medium'
-								: 'bg-white border-gray-200 hover:bg-gray-50'
-						}`}
-						onClick={() => simulateWeather('Clear', 1000, 5, 40)}
-						title="Clear weather with light wind"
-					>
-						<FaSun className="text-yellow-500" />
-						<span>Clear</span>
-					</button>
-					<button
-						className={`px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors flex items-center gap-2 ${
-							isWeatherCondition('cloud') && isWindSpeed(8, 14)
-								? 'bg-gray-100 border-primary-500 font-medium'
-								: 'bg-white border-gray-200 hover:bg-gray-50'
-						}`}
-						onClick={() => simulateWeather('Cloudy', 1006, 12, 60)}
-						title="Cloudy weather with moderate wind"
-					>
-						<FaCloud className="text-gray-500" />
-						<span>Cloudy</span>
-					</button>
-					<button
-						className={`px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors flex items-center gap-2 ${
-							(isWeatherCondition('rain') ||
-								isWeatherCondition('drizzle') ||
-								isWeatherCondition('shower')) &&
-							isWindSpeed(10, 18)
-								? 'bg-gray-100 border-primary-500 font-medium'
-								: 'bg-white border-gray-200 hover:bg-gray-50'
-						}`}
-						onClick={() => simulateWeather('Moderate rain', 1189, 15, 85)}
-						title="Rainy weather with moderate wind"
-					>
-						<FaCloudRain className="text-blue-500" />
-						<span>Rain</span>
-					</button>
-					<button
-						className={`px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors flex items-center gap-2 ${
-							(isWeatherCondition('snow') ||
-								isWeatherCondition('sleet') ||
-								isWeatherCondition('ice')) &&
-							isWindSpeed(0, 10)
-								? 'bg-gray-100 border-primary-500 font-medium'
-								: 'bg-white border-gray-200 hover:bg-gray-50'
-						}`}
-						onClick={() => simulateWeather('Light snow', 1213, 8, 75)}
-						title="Snowy weather with light wind"
-					>
-						<FaSnowflake className="text-blue-300" />
-						<span>Snow</span>
-					</button>
-					<button
-						className={`px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors flex items-center gap-2 ${
-							isWindSpeed(18, 24)
-								? 'bg-gray-100 border-primary-500 font-medium'
-								: 'bg-white border-gray-200 hover:bg-gray-50'
-						}`}
-						onClick={() => simulateWeather('Windy', 1000, 20, 30)}
-						title="Windy weather with strong wind"
-					>
-						<FaWind className="text-gray-600" />
-						<span>Windy</span>
-					</button>
-					<button
-						className={`px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors flex items-center gap-2 ${
-							(isWeatherCondition('thunder') || isWeatherCondition('storm')) &&
-							isWindSpeed(22, 100)
-								? 'bg-gray-100 border-primary-500 font-medium'
-								: 'bg-white border-gray-200 hover:bg-gray-50'
-						}`}
-						onClick={() => simulateWeather('Thunderstorm', 1087, 25, 90)}
-						title="Stormy weather with very strong wind"
-					>
-						<FaBolt className="text-yellow-600" />
-						<span>Storm</span>
-					</button>
-				</div>
-
-				{/* Reset to Geolocation Weather Button */}
-				<div className="mt-4 flex justify-center">
-					<button
-						className="px-4 py-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors flex items-center gap-2 text-gray-700"
-						onClick={resetToGeoWeather}
-						title="Reset to your actual local weather conditions"
-						disabled={isLoading}
-					>
-						{isLoading ? (
-							<>
-								<FaSync className="animate-spin text-primary-500" />
-								<span>Updating...</span>
-							</>
-						) : (
-							<>
-								<FaMapMarkerAlt className="text-primary-500" />
-								<span>Reset to My Location</span>
-							</>
-						)}
-					</button>
-				</div>
-			</div>
-
 			{/* Chimes Visualization */}
 			<div className="relative mb-8">
 				<svg
@@ -865,6 +754,112 @@ export default function ChimePlayer() {
 				</button>
 			</div>
 
+			{/* Weather Simulation Buttons */}
+			<div className="mb-6 px-4">
+				<h3 className="text-md bold font-medium text-gray-700 mb-3 text-center">
+					Simulate Weather Conditions
+				</h3>
+				<div className="flex flex-wrap justify-center gap-2">
+					<button
+						className="px-4 py-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors flex items-center gap-2 text-gray-700"
+						onClick={resetToGeoWeather}
+						title="Reset to your actual local weather conditions"
+						disabled={isLoading}
+					>
+						{isLoading ? (
+							<>
+								<FaSync className="animate-spin text-primary-500" />
+								<span>Updating...</span>
+							</>
+						) : (
+							<>
+								<FaMapMarkerAlt className="text-primary-500" />
+								<span>Reset</span>
+							</>
+						)}
+					</button>
+					<button
+						className={`px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors flex items-center gap-2 ${
+							(isWeatherCondition('clear') || isWeatherCondition('sunny')) &&
+							isWindSpeed(0, 7)
+								? 'bg-gray-100 border-primary-500 font-medium'
+								: 'bg-white border-gray-200 hover:bg-gray-50'
+						}`}
+						onClick={() => simulateWeather('Clear', 1000, 5, 40)}
+						title="Clear weather with light wind"
+					>
+						<FaSun className="text-yellow-500" />
+						<span>Clear</span>
+					</button>
+					<button
+						className={`px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors flex items-center gap-2 ${
+							isWeatherCondition('cloud') && isWindSpeed(8, 14)
+								? 'bg-gray-100 border-primary-500 font-medium'
+								: 'bg-white border-gray-200 hover:bg-gray-50'
+						}`}
+						onClick={() => simulateWeather('Cloudy', 1006, 12, 60)}
+						title="Cloudy weather with moderate wind"
+					>
+						<FaCloud className="text-gray-500" />
+						<span>Cloudy</span>
+					</button>
+					<button
+						className={`px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors flex items-center gap-2 ${
+							(isWeatherCondition('rain') ||
+								isWeatherCondition('drizzle') ||
+								isWeatherCondition('shower')) &&
+							isWindSpeed(10, 18)
+								? 'bg-gray-100 border-primary-500 font-medium'
+								: 'bg-white border-gray-200 hover:bg-gray-50'
+						}`}
+						onClick={() => simulateWeather('Moderate rain', 1189, 15, 85)}
+						title="Rainy weather with moderate wind"
+					>
+						<FaCloudRain className="text-blue-500" />
+						<span>Rain</span>
+					</button>
+					<button
+						className={`px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors flex items-center gap-2 ${
+							(isWeatherCondition('snow') ||
+								isWeatherCondition('sleet') ||
+								isWeatherCondition('ice')) &&
+							isWindSpeed(0, 10)
+								? 'bg-gray-100 border-primary-500 font-medium'
+								: 'bg-white border-gray-200 hover:bg-gray-50'
+						}`}
+						onClick={() => simulateWeather('Light snow', 1213, 8, 75)}
+						title="Snowy weather with light wind"
+					>
+						<FaSnowflake className="text-blue-300" />
+						<span>Snow</span>
+					</button>
+					<button
+						className={`px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors flex items-center gap-2 ${
+							isWindSpeed(18, 24)
+								? 'bg-gray-100 border-primary-500 font-medium'
+								: 'bg-white border-gray-200 hover:bg-gray-50'
+						}`}
+						onClick={() => simulateWeather('Windy', 1000, 20, 30)}
+						title="Windy weather with strong wind"
+					>
+						<FaWind className="text-gray-600" />
+						<span>Windy</span>
+					</button>
+					<button
+						className={`px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors flex items-center gap-2 ${
+							(isWeatherCondition('thunder') || isWeatherCondition('storm')) &&
+							isWindSpeed(22, 100)
+								? 'bg-gray-100 border-primary-500 font-medium'
+								: 'bg-white border-gray-200 hover:bg-gray-50'
+						}`}
+						onClick={() => simulateWeather('Thunderstorm', 1087, 25, 90)}
+						title="Stormy weather with very strong wind"
+					>
+						<FaBolt className="text-yellow-600" />
+						<span>Storm</span>
+					</button>
+				</div>
+			</div>
 			{/* Audio Controls */}
 			<div className="mt-6">
 				<button
