@@ -129,6 +129,26 @@ export default function ChimePlayer() {
 		return weather.current.wind_mph >= min && weather.current.wind_mph <= max;
 	};
 
+	// Function to get the appropriate swing animation class based on wind speed
+	const getSwingAnimationClass = (baseClass: string): string => {
+		if (!weather || !isPlaying) return '';
+
+		const windSpeed = weather.current.wind_mph;
+
+		// Light wind (0-7 mph)
+		if (windSpeed < 7) {
+			return `${baseClass}-light`;
+		}
+		// Strong wind (15+ mph)
+		else if (windSpeed >= 15) {
+			return `${baseClass}-strong`;
+		}
+		// Medium wind (7-15 mph)
+		else {
+			return baseClass;
+		}
+	};
+
 	// Fetch weather data immediately on component mount
 	useEffect(() => {
 		// Set mounted ref to true when component mounts
@@ -594,7 +614,9 @@ export default function ChimePlayer() {
 						fill="none"
 						fillRule="nonzero"
 						className={`chime-bell ${
-							isPlaying && activeChimes.c3 ? 'animate-swing-slow' : ''
+							isPlaying && activeChimes.c3
+								? getSwingAnimationClass('animate-swing-slow')
+								: ''
 						}`}
 						style={{ transformOrigin: '479.59px 104.304px' }}
 					>
@@ -614,7 +636,9 @@ export default function ChimePlayer() {
 						fill="none"
 						fillRule="nonzero"
 						className={`chime-bell ${
-							isPlaying && activeChimes.c4 ? 'animate-swing-med' : ''
+							isPlaying && activeChimes.c4
+								? getSwingAnimationClass('animate-swing-med')
+								: ''
 						}`}
 						style={{
 							animationDelay: '100ms',
@@ -640,7 +664,9 @@ export default function ChimePlayer() {
 						fill="none"
 						fillRule="nonzero"
 						className={`chime-bell ${
-							isPlaying && activeChimes.d3 ? 'animate-swing-fast' : ''
+							isPlaying && activeChimes.d3
+								? getSwingAnimationClass('animate-swing-fast')
+								: ''
 						}`}
 						style={{
 							animationDelay: '200ms',
@@ -666,7 +692,9 @@ export default function ChimePlayer() {
 						fill="none"
 						fillRule="nonzero"
 						className={`chime-bell ${
-							isPlaying && activeChimes.eb3 ? 'animate-swing-med' : ''
+							isPlaying && activeChimes.eb3
+								? getSwingAnimationClass('animate-swing-med')
+								: ''
 						}`}
 						style={{
 							animationDelay: '300ms',
@@ -692,7 +720,9 @@ export default function ChimePlayer() {
 						fill="none"
 						fillRule="nonzero"
 						className={`chime-bell ${
-							isPlaying && activeChimes.f3 ? 'animate-swing-slow' : ''
+							isPlaying && activeChimes.f3
+								? getSwingAnimationClass('animate-swing-slow')
+								: ''
 						}`}
 						style={{
 							animationDelay: '400ms',
@@ -718,7 +748,9 @@ export default function ChimePlayer() {
 						fill="none"
 						fillRule="nonzero"
 						className={`chime-bell ${
-							isPlaying && activeChimes.g3 ? 'animate-swing-fast' : ''
+							isPlaying && activeChimes.g3
+								? getSwingAnimationClass('animate-swing-fast')
+								: ''
 						}`}
 						style={{
 							animationDelay: '500ms',
