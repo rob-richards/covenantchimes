@@ -843,7 +843,7 @@ export default function ChimePlayer() {
 
 			{/* Weather Simulation Buttons */}
 			<div className="mb-6 px-4">
-				<h3 className="text-md bold font-medium text-gray-700 mb-3 text-center">
+				<h3 className="text-md bold font-medium text-gray-700 my-3 text-center">
 					Simulate Weather Conditions
 				</h3>
 				<div className="flex flex-wrap justify-center gap-2">
