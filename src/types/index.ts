@@ -1,5 +1,8 @@
+import { ReactNode } from 'react';
+
 export interface WeatherData {
 	location: {
+		region: ReactNode;
 		name: string;
 		country: string;
 		lat: number;
@@ -61,5 +64,9 @@ export interface UserSettings {
 	binaural: {
 		enabled: boolean;
 		frequency: number;
+		carrierFrequency: number;
+		beatFrequency: number;
+		preset: 'custom' | 'delta' | 'theta' | 'alpha' | 'beta' | 'gamma';
+		volume: number;
 	};
 }

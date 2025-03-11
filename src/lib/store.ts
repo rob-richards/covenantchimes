@@ -57,7 +57,11 @@ const defaultUserSettings: UserSettings = {
 	selectedPack: 'default',
 	binaural: {
 		enabled: false,
-		frequency: 432, // Default to 432 Hz
+		frequency: 432, // Legacy field, kept for backward compatibility
+		carrierFrequency: 400, // Carrier frequency (400Hz is optimal for binaural beats)
+		beatFrequency: 10, // Beat frequency (difference between left and right ear)
+		preset: 'alpha', // Default to alpha waves (relaxed, calm)
+		volume: 0.1, // Default volume for binaural beats
 	},
 };
 

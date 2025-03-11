@@ -101,7 +101,14 @@ export function useSimpleAudio() {
 	const gainNode = useRef<GainNode | null>(null);
 	const droneAudio = useRef<HTMLAudioElement | null>(null);
 	const ambienceAudio = useRef<HTMLAudioElement | null>(null);
-	const oscillator = useRef<OscillatorNode | null>(null);
+	const oscillatorLeft = useRef<OscillatorNode | null>(null);
+	const oscillatorRight = useRef<OscillatorNode | null>(null);
+	const binauralGain = useRef<GainNode | null>(null);
+	const stereoPanner = useRef<StereoPannerNode | null>(null);
+	const chimeIntervals = useRef<number[]>([]);
+	const audioElements = useRef<{
+		[key: string]: HTMLAudioElement | null;
+	}>({});
 
 	// Chime audio elements
 	const chimeAudios = useRef<{
@@ -284,10 +291,24 @@ export function useSimpleAudio() {
 				}
 			});
 
-			if (oscillator.current) {
-				oscillator.current.stop();
-				oscillator.current.disconnect();
-				oscillator.current = null;
+			if (oscillatorLeft.current) {
+				oscillatorLeft.current.stop();
+				oscillatorLeft.current.disconnect();
+				oscillatorLeft.current = null;
+			}
+
+			if (oscillatorRight.current) {
+				oscillatorRight.current.stop();
+				oscillatorRight.current.disconnect();
+				oscillatorRight.current = null;
+			}
+
+			if (binauralGain.current) {
+				binauralGain.current.gain.value = 0;
+			}
+
+			if (stereoPanner.current) {
+				stereoPanner.current.pan.value = 0;
 			}
 
 			// Load all audio files with fallbacks
@@ -404,19 +425,60 @@ export function useSimpleAudio() {
 			// Create binaural beat if enabled
 			if (userSettings.binaural.enabled) {
 				try {
-					const osc = context.createOscillator();
-					osc.frequency.value = userSettings.binaural.frequency;
-					osc.type = 'sine';
+					// Create two oscillators for true binaural beats
+					const leftOsc = context.createOscillator();
+					const rightOsc = context.createOscillator();
 
-					const oscGain = context.createGain();
-					oscGain.gain.value = 0.1;
+					// Calculate frequencies based on carrier and beat frequencies
+					const carrierFreq = userSettings.binaural.carrierFrequency;
+					const beatFreq = userSettings.binaural.beatFrequency;
 
-					osc.connect(oscGain);
-					oscGain.connect(master);
+					// Left ear frequency = carrier - (beat/2)
+					// Right ear frequency = carrier + (beat/2)
+					leftOsc.frequency.value = carrierFreq - beatFreq / 2;
+					rightOsc.frequency.value = carrierFreq + beatFreq / 2;
 
-					osc.start();
-					oscillator.current = osc;
-					console.log('Binaural beat started');
+					// Use sine waves for the cleanest tone
+					leftOsc.type = 'sine';
+					rightOsc.type = 'sine';
+
+					// Create a stereo panner to send each oscillator to the correct ear
+					const leftPanner = context.createStereoPanner();
+					const rightPanner = context.createStereoPanner();
+					leftPanner.pan.value = -1; // Full left
+					rightPanner.pan.value = 1; // Full right
+
+					// Create a gain node to control the volume of the binaural beats
+					const binauralGainNode = context.createGain();
+					binauralGainNode.gain.value = userSettings.binaural.volume;
+
+					// Connect the oscillators to their respective panners
+					leftOsc.connect(leftPanner);
+					rightOsc.connect(rightPanner);
+
+					// Connect the panners to the binaural gain node
+					leftPanner.connect(binauralGainNode);
+					rightPanner.connect(binauralGainNode);
+
+					// Connect the binaural gain to the master output
+					binauralGainNode.connect(master);
+
+					// Start the oscillators
+					leftOsc.start();
+					rightOsc.start();
+
+					// Store references for later use
+					oscillatorLeft.current = leftOsc;
+					oscillatorRight.current = rightOsc;
+					binauralGain.current = binauralGainNode;
+
+					console.log(
+						'Binaural beat started with carrier frequency:',
+						carrierFreq,
+						'Hz and beat frequency:',
+						beatFreq,
+						'Hz'
+					);
 				} catch (e) {
 					console.error('Error creating binaural beat:', e);
 				}
@@ -434,8 +496,6 @@ export function useSimpleAudio() {
 	};
 
 	// Play chimes based on wind speed
-	const chimeIntervals = useRef<number[]>([]);
-
 	const startChimes = (windSpeed: number) => {
 		// Check if chime audio is loaded
 		if (
@@ -519,7 +579,7 @@ export function useSimpleAudio() {
 								];
 							if (chimePair && 'a' in chimePair && 'b' in chimePair) {
 								chimeSound = useA ? chimePair.a : chimePair.b;
-								useA = !useA; // Toggle for next time
+								useA = !useA; // Alternate for next time
 							}
 						} else {
 							// For G3 which doesn't alternate
@@ -573,10 +633,11 @@ export function useSimpleAudio() {
 						}
 					}
 				} catch (e) {
-					console.warn(`Error playing ${chime.name} chime sound:`, e);
+					console.error('Error in chime interval:', e);
 				}
 			}, interval);
 
+			// Store the interval ID for cleanup
 			chimeIntervals.current.push(intervalId);
 		});
 
@@ -587,49 +648,87 @@ export function useSimpleAudio() {
 
 	// Clear all chime intervals
 	const clearChimeIntervals = () => {
-		chimeIntervals.current.forEach((id) => clearInterval(id));
+		chimeIntervals.current.forEach((interval) => {
+			clearInterval(interval);
+		});
 		chimeIntervals.current = [];
 	};
 
 	// Stop all audio
 	const stopAudio = () => {
 		console.log('Stopping audio...');
+
+		// Clear all chime intervals
 		clearChimeIntervals();
 
-		if (droneAudio.current) {
-			droneAudio.current.pause();
-		}
-
-		if (ambienceAudio.current) {
-			ambienceAudio.current.pause();
-		}
-
-		// Clean up all chime audio elements
+		// Stop and clean up all audio elements
 		Object.keys(chimeAudios.current).forEach((key) => {
 			const chime =
 				chimeAudios.current[key as keyof typeof chimeAudios.current];
-			if (chime) {
-				if ('a' in chime && chime.a) {
+			if (chime && typeof chime === 'object' && 'a' in chime) {
+				// Handle alternating chimes with a/b properties
+				if (chime.a) {
 					chime.a.pause();
-					chime.a.src = '';
+					chime.a.currentTime = 0;
 				}
-				if ('b' in chime && chime.b) {
+				if (chime.b) {
 					chime.b.pause();
-					chime.b.src = '';
+					chime.b.currentTime = 0;
 				}
-				if (!('a' in chime) && chime) {
-					(chime as HTMLAudioElement).pause();
-					(chime as HTMLAudioElement).src = '';
-				}
+			} else if (chime instanceof HTMLAudioElement) {
+				// Handle single audio element
+				chime.pause();
+				chime.currentTime = 0;
 			}
 		});
 
-		if (oscillator.current) {
-			oscillator.current.stop();
+		// Stop and clean up drone audio
+		if (droneAudio.current) {
+			droneAudio.current.pause();
+			droneAudio.current.currentTime = 0;
 		}
 
+		// Stop and clean up ambience audio
+		if (ambienceAudio.current) {
+			ambienceAudio.current.pause();
+			ambienceAudio.current.currentTime = 0;
+		}
+
+		// Stop and clean up binaural beat oscillators
+		if (oscillatorLeft.current) {
+			oscillatorLeft.current.stop();
+			oscillatorLeft.current.disconnect();
+			oscillatorLeft.current = null;
+		}
+
+		if (oscillatorRight.current) {
+			oscillatorRight.current.stop();
+			oscillatorRight.current.disconnect();
+			oscillatorRight.current = null;
+		}
+
+		if (binauralGain.current) {
+			binauralGain.current.disconnect();
+			binauralGain.current = null;
+		}
+
+		if (stereoPanner.current) {
+			stereoPanner.current.disconnect();
+			stereoPanner.current = null;
+		}
+
+		// Reset active chimes
+		setActiveChimes({
+			c3: false,
+			c4: false,
+			d3: false,
+			eb3: false,
+			f3: false,
+			g3: false,
+		});
+
 		setIsPlaying(false);
-		console.log('Audio stopped');
+		console.log('Audio stopped successfully');
 	};
 
 	// Clean up on unmount
@@ -672,34 +771,98 @@ export function useSimpleAudio() {
 					: ((userSettings.volume.ambience + 30) / 36) * 0.6; // Increased from 0.5 to 0.6
 		}
 
-		// Update chimes volume (will affect future chime sounds)
-		// The volume for each chime is applied when the sound is played in startChimes
-
 		// Update binaural beat
 		if (userSettings.binaural.enabled) {
-			if (!oscillator.current && audioContext.current) {
+			if (
+				!oscillatorLeft.current &&
+				!oscillatorRight.current &&
+				audioContext.current
+			) {
 				try {
-					const osc = audioContext.current.createOscillator();
-					osc.frequency.value = userSettings.binaural.frequency;
-					osc.type = 'sine';
+					// Create two oscillators for true binaural beats
+					const leftOsc = audioContext.current.createOscillator();
+					const rightOsc = audioContext.current.createOscillator();
 
-					const oscGain = audioContext.current.createGain();
-					oscGain.gain.value = 0.1;
+					// Calculate frequencies based on carrier and beat frequencies
+					const carrierFreq = userSettings.binaural.carrierFrequency;
+					const beatFreq = userSettings.binaural.beatFrequency;
 
-					osc.connect(oscGain);
-					oscGain.connect(audioContext.current.destination);
+					// Left ear frequency = carrier - (beat/2)
+					// Right ear frequency = carrier + (beat/2)
+					leftOsc.frequency.value = carrierFreq - beatFreq / 2;
+					rightOsc.frequency.value = carrierFreq + beatFreq / 2;
 
-					osc.start();
-					oscillator.current = osc;
+					// Use sine waves for the cleanest tone
+					leftOsc.type = 'sine';
+					rightOsc.type = 'sine';
+
+					// Create a stereo panner to send each oscillator to the correct ear
+					const leftPanner = audioContext.current.createStereoPanner();
+					const rightPanner = audioContext.current.createStereoPanner();
+					leftPanner.pan.value = -1; // Full left
+					rightPanner.pan.value = 1; // Full right
+
+					// Create a gain node to control the volume of the binaural beats
+					const binauralGainNode = audioContext.current.createGain();
+					binauralGainNode.gain.value = userSettings.binaural.volume;
+
+					// Connect the oscillators to their respective panners
+					leftOsc.connect(leftPanner);
+					rightOsc.connect(rightPanner);
+
+					// Connect the panners to the binaural gain node
+					leftPanner.connect(binauralGainNode);
+					rightPanner.connect(binauralGainNode);
+
+					// Connect the binaural gain to the master output
+					binauralGainNode.connect(audioContext.current.destination);
+
+					// Start the oscillators
+					leftOsc.start();
+					rightOsc.start();
+
+					// Store references for later use
+					oscillatorLeft.current = leftOsc;
+					oscillatorRight.current = rightOsc;
+					binauralGain.current = binauralGainNode;
+
+					console.log(
+						'Binaural beat started with carrier frequency:',
+						carrierFreq,
+						'Hz and beat frequency:',
+						beatFreq,
+						'Hz'
+					);
 				} catch (e) {
 					console.error('Error creating binaural beat:', e);
 				}
-			} else if (oscillator.current) {
-				oscillator.current.frequency.value = userSettings.binaural.frequency;
+			} else if (oscillatorLeft.current && oscillatorRight.current) {
+				// Calculate frequencies based on carrier and beat frequencies
+				const carrierFreq = userSettings.binaural.carrierFrequency;
+				const beatFreq = userSettings.binaural.beatFrequency;
+
+				// Update left and right frequencies with the correct offset
+				oscillatorLeft.current.frequency.value = carrierFreq - beatFreq / 2;
+				oscillatorRight.current.frequency.value = carrierFreq + beatFreq / 2;
+
+				// Update volume if needed
+				if (binauralGain.current) {
+					binauralGain.current.gain.value = userSettings.binaural.volume;
+				}
+
+				console.log(
+					'Updated binaural beat: carrier =',
+					carrierFreq,
+					'Hz, beat =',
+					beatFreq,
+					'Hz'
+				);
 			}
-		} else if (oscillator.current) {
-			oscillator.current.stop();
-			oscillator.current = null;
+		} else if (oscillatorLeft.current || oscillatorRight.current) {
+			oscillatorLeft.current?.stop();
+			oscillatorRight.current?.stop();
+			oscillatorLeft.current = null;
+			oscillatorRight.current = null;
 		}
 	}, [userSettings, isInitialized, isPlaying]);
 

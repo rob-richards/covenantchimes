@@ -389,7 +389,62 @@ export default function ChimePlayer() {
 		updateUserSettings({
 			binaural: {
 				...userSettings.binaural,
+				beatFrequency: value,
 				frequency: value,
+				preset: 'custom',
+			},
+		});
+	};
+
+	// Update binaural carrier frequency
+	const handleCarrierFrequencyChange = (
+		e: React.ChangeEvent<HTMLInputElement>
+	) => {
+		const value = parseInt(e.target.value, 10);
+		updateUserSettings({
+			binaural: {
+				...userSettings.binaural,
+				carrierFrequency: value,
+				preset: 'custom',
+			},
+		});
+	};
+
+	// Update binaural volume
+	const handleBinauralVolumeChange = (
+		e: React.ChangeEvent<HTMLInputElement>
+	) => {
+		const value = parseFloat(e.target.value);
+		updateUserSettings({
+			binaural: {
+				...userSettings.binaural,
+				volume: value,
+			},
+		});
+	};
+
+	// Set binaural preset
+	const setBinauralPreset = (
+		preset: 'delta' | 'theta' | 'alpha' | 'beta' | 'gamma'
+	) => {
+		// Define beat frequencies for each brain wave state
+		const presetFrequencies = {
+			delta: 2, // 1-4 Hz: Deep sleep, healing
+			theta: 6, // 4-8 Hz: Deep relaxation, meditation
+			alpha: 10, // 8-14 Hz: Relaxed focus, calm
+			beta: 20, // 14-30 Hz: Active thinking, focus
+			gamma: 40, // 30-100 Hz: Higher mental activity
+		};
+
+		const beatFrequency = presetFrequencies[preset];
+
+		updateUserSettings({
+			binaural: {
+				...userSettings.binaural,
+				beatFrequency: beatFrequency,
+				frequency: beatFrequency, // Update legacy property for backward compatibility
+				preset: preset,
+				enabled: true,
 			},
 		});
 	};
@@ -1100,24 +1155,142 @@ export default function ChimePlayer() {
 									Enable Binaural Beats
 								</label>
 							</div>
+
 							{userSettings.binaural.enabled && (
-								<div className="mt-2">
-									<label
-										htmlFor="binaural-frequency"
-										className="block text-sm font-medium text-gray-700 mb-1"
-									>
-										Frequency: {userSettings.binaural.frequency} Hz
-									</label>
-									<input
-										id="binaural-frequency"
-										type="range"
-										min="20"
-										max="1000"
-										step="1"
-										value={userSettings.binaural.frequency}
-										onChange={handleBinauralFrequencyChange}
-										className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-									/>
+								<div className="mt-4 p-4 bg-gray-50 rounded-md">
+									<div className="mb-4">
+										<h4 className="text-sm font-medium text-gray-700 mb-2">
+											Brain Wave Presets
+										</h4>
+										<p className="text-xs text-gray-500 mb-2">
+											Binaural beats occur when two slightly different
+											frequencies are played in each ear, creating a perceived
+											beat at the difference frequency.
+										</p>
+										<div className="flex flex-wrap gap-2 mt-2">
+											<button
+												className={`px-3 py-1 text-xs rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 ${
+													userSettings.binaural.preset === 'delta'
+														? 'bg-primary-600 text-white'
+														: 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+												}`}
+												onClick={() => setBinauralPreset('delta')}
+												title="1-4 Hz: Deep sleep, healing, pain relief"
+											>
+												Sleep (Delta 2 Hz)
+											</button>
+											<button
+												className={`px-3 py-1 text-xs rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 ${
+													userSettings.binaural.preset === 'theta'
+														? 'bg-primary-600 text-white'
+														: 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+												}`}
+												onClick={() => setBinauralPreset('theta')}
+												title="4-8 Hz: Meditation, deep relaxation, creativity"
+											>
+												Relax (Theta 6 Hz)
+											</button>
+											<button
+												className={`px-3 py-1 text-xs rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 ${
+													userSettings.binaural.preset === 'alpha'
+														? 'bg-primary-600 text-white'
+														: 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+												}`}
+												onClick={() => setBinauralPreset('alpha')}
+												title="8-14 Hz: Relaxed focus, calm, positive thinking"
+											>
+												Calm (Alpha 10 Hz)
+											</button>
+											<button
+												className={`px-3 py-1 text-xs rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 ${
+													userSettings.binaural.preset === 'beta'
+														? 'bg-primary-600 text-white'
+														: 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+												}`}
+												onClick={() => setBinauralPreset('beta')}
+												title="14-30 Hz: Focused attention, problem solving, active thinking"
+											>
+												Focus (Beta 20 Hz)
+											</button>
+											<button
+												className={`px-3 py-1 text-xs rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 ${
+													userSettings.binaural.preset === 'gamma'
+														? 'bg-primary-600 text-white'
+														: 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+												}`}
+												onClick={() => setBinauralPreset('gamma')}
+												title="30-100 Hz: Higher mental activity, cognitive enhancement"
+											>
+												Productive (Gamma 40 Hz)
+											</button>
+										</div>
+									</div>
+
+									<div className="mb-3">
+										<label
+											htmlFor="beat-frequency"
+											className="block text-xs font-medium text-gray-700 mb-1"
+										>
+											Beat Frequency: {userSettings.binaural.beatFrequency} Hz
+										</label>
+										<input
+											id="beat-frequency"
+											type="range"
+											min="1"
+											max="40"
+											step="1"
+											value={userSettings.binaural.beatFrequency}
+											onChange={handleBinauralFrequencyChange}
+											className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+										/>
+										<p className="text-xs text-gray-500 mt-1">
+											The difference between the two tones (1-40 Hz). This
+											determines the brain wave entrainment effect.
+										</p>
+									</div>
+
+									<div className="mb-3">
+										<label
+											htmlFor="carrier-frequency"
+											className="block text-xs font-medium text-gray-700 mb-1"
+										>
+											Carrier Frequency:{' '}
+											{userSettings.binaural.carrierFrequency} Hz
+										</label>
+										<input
+											id="carrier-frequency"
+											type="range"
+											min="100"
+											max="500"
+											step="10"
+											value={userSettings.binaural.carrierFrequency}
+											onChange={handleCarrierFrequencyChange}
+											className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+										/>
+										<p className="text-xs text-gray-500 mt-1">
+											The base frequency (100-500 Hz). Binaural beats are best
+											perceived around 400 Hz.
+										</p>
+									</div>
+
+									<div className="mb-3">
+										<label
+											htmlFor="binaural-volume"
+											className="block text-xs font-medium text-gray-700 mb-1"
+										>
+											Volume: {Math.round(userSettings.binaural.volume * 100)}%
+										</label>
+										<input
+											id="binaural-volume"
+											type="range"
+											min="0"
+											max="0.3"
+											step="0.01"
+											value={userSettings.binaural.volume}
+											onChange={handleBinauralVolumeChange}
+											className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+										/>
+									</div>
 								</div>
 							)}
 						</div>
