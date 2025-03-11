@@ -10,6 +10,14 @@ import {
 	FaVolumeUp,
 	FaVolumeMute,
 	FaExclamationTriangle,
+	FaSun,
+	FaCloud,
+	FaCloudRain,
+	FaSnowflake,
+	FaWind,
+	FaBolt,
+	FaSync,
+	FaMapMarkerAlt,
 } from 'react-icons/fa';
 import LoadingSpinner from './ui/LoadingSpinner';
 
@@ -36,6 +44,89 @@ export default function ChimePlayer() {
 	const [weatherFetched, setWeatherFetched] = useState(false);
 	const isFetchingRef = useRef(false);
 	const mountedRef = useRef(true);
+
+	// Default weather object for simulation
+	const defaultWeather = {
+		location: {
+			name: 'Your Location',
+			country: 'Earth',
+			lat: 0,
+			lon: 0,
+		},
+		current: {
+			temp_c: 22,
+			temp_f: 72,
+			condition: {
+				text: 'Clear',
+				code: 1000,
+				icon: '//cdn.weatherapi.com/weather/64x64/day/113.png',
+			},
+			wind_kph: 15,
+			wind_mph: 9.3,
+			humidity: 65,
+			cloud: 25,
+			feelslike_c: 22,
+			feelslike_f: 72,
+			is_day: 1,
+		},
+	};
+
+	// Function to simulate weather conditions
+	const simulateWeather = (
+		conditionText: string,
+		conditionCode: number,
+		windSpeed: number,
+		humidity: number
+	) => {
+		const currentWeather = weather || defaultWeather;
+
+		setWeather({
+			...currentWeather,
+			current: {
+				...currentWeather.current,
+				condition: {
+					text: conditionText,
+					code: conditionCode,
+					icon: `//cdn.weatherapi.com/weather/64x64/day/${conditionCode}.png`,
+				},
+				wind_mph: windSpeed,
+				wind_kph: windSpeed * 1.60934, // Convert mph to kph
+				humidity: humidity,
+			},
+		});
+
+		// Always restart audio to apply new weather conditions immediately
+		if (isPlaying) {
+			console.log(
+				`Restarting audio with new weather: ${conditionText}, wind: ${windSpeed}mph`
+			);
+			stopAudio();
+			// Short delay to ensure audio context has time to clean up
+			setTimeout(() => {
+				handleStartAudio();
+			}, 300);
+		} else if (isInitialized) {
+			// If audio is initialized but not playing, start it
+			console.log(
+				`Starting audio with weather: ${conditionText}, wind: ${windSpeed}mph`
+			);
+			handleStartAudio();
+		}
+	};
+
+	// Function to check if a weather condition is active
+	const isWeatherCondition = (conditionText: string): boolean => {
+		if (!weather) return false;
+		return weather.current.condition.text
+			.toLowerCase()
+			.includes(conditionText.toLowerCase());
+	};
+
+	// Function to check if wind speed is in a certain range
+	const isWindSpeed = (min: number, max: number): boolean => {
+		if (!weather) return false;
+		return weather.current.wind_mph >= min && weather.current.wind_mph <= max;
+	};
 
 	// Fetch weather data immediately on component mount
 	useEffect(() => {
@@ -189,6 +280,30 @@ export default function ChimePlayer() {
 		}
 	}, [setupComplete, isPlaying, autoStarted, audioError]);
 
+	// Monitor weather changes and restart audio if needed
+	useEffect(() => {
+		// Skip on initial render or when weather is null
+		if (!weather || !isInitialized) return;
+
+		console.log(
+			'Weather changed:',
+			weather.current.condition.text,
+			'Wind:',
+			weather.current.wind_mph,
+			'mph'
+		);
+
+		// If audio is already playing, restart it to apply new weather conditions
+		if (isPlaying) {
+			console.log('Restarting audio to apply new weather conditions');
+			stopAudio();
+			// Short delay to ensure audio context has time to clean up
+			setTimeout(() => {
+				handleStartAudio();
+			}, 300);
+		}
+	}, [weather?.current.condition.text, weather?.current.wind_mph]);
+
 	// Function to manually initialize audio
 	const handleStartAudio = async () => {
 		try {
@@ -258,6 +373,73 @@ export default function ChimePlayer() {
 		});
 	};
 
+	// Function to reset to geolocation weather
+	const resetToGeoWeather = () => {
+		// Show loading state
+		setLoading(true);
+
+		const fetchWeatherForReset = (latitude: number, longitude: number) => {
+			getWeatherByCoordinates(latitude, longitude)
+				.then((data) => {
+					console.log('Weather data fetched successfully:', data);
+					setWeather(data);
+					setError(null);
+					setSetupComplete(true);
+					setLoading(false);
+
+					// If audio is already playing, restart it to apply new weather conditions
+					if (isPlaying) {
+						console.log('Restarting audio to apply new weather conditions');
+						stopAudio();
+						// Short delay to ensure audio context has time to clean up
+						setTimeout(() => {
+							handleStartAudio();
+						}, 300);
+					}
+				})
+				.catch((err) => {
+					console.error('Weather fetch error:', err);
+					setLoading(false);
+					setError('Failed to fetch weather data. Please try again.');
+				});
+		};
+
+		// If we have cached geolocation, use it
+		if (cachedGeolocation) {
+			console.log('Resetting to geolocation weather using cached coordinates');
+			fetchWeatherForReset(
+				cachedGeolocation.latitude,
+				cachedGeolocation.longitude
+			);
+		} else {
+			// Otherwise try to get geolocation again
+			console.log('Requesting geolocation for weather reset');
+			if (navigator.geolocation) {
+				navigator.geolocation.getCurrentPosition(
+					(position) => {
+						const { latitude, longitude } = position.coords;
+						console.log(`Got user location: ${latitude}, ${longitude}`);
+
+						// Cache the geolocation for future use
+						cachedGeolocation = { latitude, longitude };
+
+						fetchWeatherForReset(latitude, longitude);
+					},
+					(error) => {
+						console.error('Geolocation error:', error);
+						setLoading(false);
+						setError('Could not get your location. Please try again.');
+					}
+				);
+			} else {
+				// Geolocation not supported
+				console.log('Geolocation not supported');
+				setLoading(false);
+				setError('Geolocation is not supported by your browser.');
+			}
+		}
+	};
+
 	// Show loading spinner only during initial load
 	if (isLoading && !weatherFetched) {
 		console.log('Rendering loading spinner');
@@ -320,7 +502,7 @@ export default function ChimePlayer() {
 	return (
 		<div className="w-full max-w-4xl p-6 bg-white rounded-lg shadow-md">
 			{/* Weather Information - Always show at the top */}
-			<div className="mb-8 text-center">
+			<div className="mb-4 text-center">
 				{weather ? (
 					<>
 						<h2 className="text-2xl font-semibold text-gray-800">
@@ -356,6 +538,117 @@ export default function ChimePlayer() {
 						</p>
 					</div>
 				)}
+			</div>
+
+			{/* Weather Simulation Buttons */}
+			<div className="mb-6 px-4">
+				<h3 className="text-sm font-medium text-gray-700 mb-3 text-center">
+					Simulate Weather Conditions
+				</h3>
+				<div className="flex flex-wrap justify-center gap-2">
+					<button
+						className={`px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors flex items-center gap-2 ${
+							(isWeatherCondition('clear') || isWeatherCondition('sunny')) &&
+							isWindSpeed(0, 7)
+								? 'bg-gray-100 border-primary-500 font-medium'
+								: 'bg-white border-gray-200 hover:bg-gray-50'
+						}`}
+						onClick={() => simulateWeather('Clear', 1000, 5, 40)}
+						title="Clear weather with light wind"
+					>
+						<FaSun className="text-yellow-500" />
+						<span>Clear</span>
+					</button>
+					<button
+						className={`px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors flex items-center gap-2 ${
+							isWeatherCondition('cloud') && isWindSpeed(8, 14)
+								? 'bg-gray-100 border-primary-500 font-medium'
+								: 'bg-white border-gray-200 hover:bg-gray-50'
+						}`}
+						onClick={() => simulateWeather('Cloudy', 1006, 12, 60)}
+						title="Cloudy weather with moderate wind"
+					>
+						<FaCloud className="text-gray-500" />
+						<span>Cloudy</span>
+					</button>
+					<button
+						className={`px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors flex items-center gap-2 ${
+							(isWeatherCondition('rain') ||
+								isWeatherCondition('drizzle') ||
+								isWeatherCondition('shower')) &&
+							isWindSpeed(10, 18)
+								? 'bg-gray-100 border-primary-500 font-medium'
+								: 'bg-white border-gray-200 hover:bg-gray-50'
+						}`}
+						onClick={() => simulateWeather('Moderate rain', 1189, 15, 85)}
+						title="Rainy weather with moderate wind"
+					>
+						<FaCloudRain className="text-blue-500" />
+						<span>Rain</span>
+					</button>
+					<button
+						className={`px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors flex items-center gap-2 ${
+							(isWeatherCondition('snow') ||
+								isWeatherCondition('sleet') ||
+								isWeatherCondition('ice')) &&
+							isWindSpeed(0, 10)
+								? 'bg-gray-100 border-primary-500 font-medium'
+								: 'bg-white border-gray-200 hover:bg-gray-50'
+						}`}
+						onClick={() => simulateWeather('Light snow', 1213, 8, 75)}
+						title="Snowy weather with light wind"
+					>
+						<FaSnowflake className="text-blue-300" />
+						<span>Snow</span>
+					</button>
+					<button
+						className={`px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors flex items-center gap-2 ${
+							isWindSpeed(18, 24)
+								? 'bg-gray-100 border-primary-500 font-medium'
+								: 'bg-white border-gray-200 hover:bg-gray-50'
+						}`}
+						onClick={() => simulateWeather('Windy', 1000, 20, 30)}
+						title="Windy weather with strong wind"
+					>
+						<FaWind className="text-gray-600" />
+						<span>Windy</span>
+					</button>
+					<button
+						className={`px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors flex items-center gap-2 ${
+							(isWeatherCondition('thunder') || isWeatherCondition('storm')) &&
+							isWindSpeed(22, 100)
+								? 'bg-gray-100 border-primary-500 font-medium'
+								: 'bg-white border-gray-200 hover:bg-gray-50'
+						}`}
+						onClick={() => simulateWeather('Thunderstorm', 1087, 25, 90)}
+						title="Stormy weather with very strong wind"
+					>
+						<FaBolt className="text-yellow-600" />
+						<span>Storm</span>
+					</button>
+				</div>
+
+				{/* Reset to Geolocation Weather Button */}
+				<div className="mt-4 flex justify-center">
+					<button
+						className="px-4 py-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors flex items-center gap-2 text-gray-700"
+						onClick={resetToGeoWeather}
+						title="Reset to your actual local weather conditions"
+						disabled={isLoading}
+					>
+						{isLoading ? (
+							<>
+								<FaSync className="animate-spin text-primary-500" />
+								<span>Updating...</span>
+							</>
+						) : (
+							<>
+								<FaMapMarkerAlt className="text-primary-500" />
+								<span>Reset to My Location</span>
+							</>
+						)}
+					</button>
+				</div>
 			</div>
 
 			{/* Chimes Visualization */}
