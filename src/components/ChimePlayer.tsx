@@ -52,6 +52,7 @@ export default function ChimePlayer() {
 			country: 'Earth',
 			lat: 0,
 			lon: 0,
+			region: 'Unknown',
 		},
 		current: {
 			temp_c: 22,
@@ -506,7 +507,7 @@ export default function ChimePlayer() {
 				{weather ? (
 					<>
 						<h2 className="text-2xl font-semibold text-gray-800">
-							{weather.location.name}, {weather.location.country}
+							{weather.location.name}, {weather.location.region}
 						</h2>
 						<div className="flex items-center justify-center mt-2">
 							<img
